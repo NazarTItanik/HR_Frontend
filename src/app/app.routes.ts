@@ -36,7 +36,7 @@ export const routes: Routes = [
             { path: 'employee-detail', component: EmployeeDetailsComponent, title: 'Employee Details', data: { roles: ['ADMIN'] } },
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
             { path: 'attendance', component: AttendancesComponent, title: 'Attendance' },
-            { path: 'leaves', component: LeavesComponent, title: 'Attendance' },
+            { path: 'leaves', component: LeavesComponent, title: 'Attendance', data: { roles: ['ADMIN']} },
             { path: 'payslips', component: PayslipsComponent, title: 'Payslips' },
             { path: 'employees', component: Employees, title: 'Employees' },
             { path: 'user-dashboard', component: UserDashboardComponent, title: 'User Dashboard' }
