@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 export class ApiService {
   private http = inject(HttpClient);
 
-  private readonly baseUrl = "http://localhost:5000";
+  private readonly baseUrl = "https://localhost:7290";
 
   get<T>(path: string, params: any = {}): Observable<T> {
     return this.http.get<T>(`${this.baseUrl}/${path}`, { params });

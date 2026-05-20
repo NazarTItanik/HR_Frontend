@@ -50,17 +50,17 @@ export class Login {
         Email: this.loginForm.value.username as string,
         Password: this.loginForm.value.password as string
       };
-
+      console.log(credentials)
       this.authService.login(credentials).subscribe({
         next: (response) => {
           console.log(response);
           this.loading = false;
-
+          
           this.router.navigate(['/dashboard']);
         },
         error: (err) => {
           this.loading = false;
-          console.error('Login failed:', err);
+          console.error('Login failed:', err.message);
         }
       });
     } else {
