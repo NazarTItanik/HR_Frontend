@@ -1,0 +1,71 @@
+.hr-sidebar {
+    width: 70px;
+    height: 100vh;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    /* subtle border */
+    transition: width 0.3s ease;
+    overflow: hidden;
+}
+
+/* Expanded state */
+.hr-sidebar.expanded {
+    width: 220px;
+}
+
+/* Menu container */
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+    gap: 0.4rem;
+}
+
+/* Menu item */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    color: #374151;
+    /* dark gray text */
+    text-decoration: none;
+    border-radius: 8px;
+    margin: 0 0.5rem;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Hover */
+.nav-item:hover {
+    background: #f3f4f6;
+    /* light gray */
+}
+
+/* Active link */
+.active-link {
+    background: #e0f2fe;
+    /* soft blue */
+    color: #2563eb;
+}
+
+/* Icon */
+.nav-item i {
+    font-size: 1.2rem;
+    min-width: 20px;
+}
+
+/* Text hidden when collapsed */
+.nav-text {
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Show text when expanded */
+.hr-sidebar.expanded .nav-text {
+    opacity: 1;
+}
+
+.hr-sidebar {
+    height: 100% !important;
+}

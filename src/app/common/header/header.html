@@ -1,0 +1,16 @@
+<p-toolbar class="header" styleClass="border-none border-bottom-1 surface-border" [style]="{'padding': '1rem 2rem'}">
+
+    <ng-template #start>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <p-button icon="pi pi-bars" variant="text" severity="secondary" (onClick)="onMenuClick()" />
+            <h2 style="margin: 0; color: var(--text-color);">HR System</h2>
+        </div>
+    </ng-template>
+
+    <ng-template #end>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <p-button icon="pi pi-sign-out" label="Logout" severity="secondary" variant="text" (onClick)="onLogout()" />
+        </div>
+    </ng-template>
+
+</p-toolbar>

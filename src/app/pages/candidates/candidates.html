@@ -1,0 +1,242 @@
+<div class="candidates-page flex gap-4 p-4 h-full min-h-screen">
+
+    <!-- ═══ LEFT SIDEBAR ═══════════════════════════════════════════════════════ -->
+    <div class="candidates-sidebar flex flex-column gap-3 flex-shrink-0">
+
+        <p-button label="Add Candidate" icon="pi pi-plus" styleClass="add-btn w-full" (onClick)="openDialog()">
+        </p-button>
+
+        <!-- Stage summary list -->
+        <div class="stages-list flex flex-column gap-1 mt-2">
+            <div *ngFor="let stage of stagesSummary()"
+                class="stage-item flex justify-content-between align-items-center p-3 border-round cursor-pointer"
+                [class.active-stage]="stage.active" (click)="selectStage(stage.stage)">
+
+                <span class="text-sm font-medium stage-label">{{ stage.stage }}</span>
+                <span class="badge px-2 py-1 border-round text-xs font-bold">
+                    {{ stage.count }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MAIN CONTENT ════════════════════════════════════════════════════════ -->
+    <div class="main-content flex-1 light-card border-round-xl p-4 flex flex-column gap-4">
+
+        <!-- Toolbar -->
+        <div class="toolbar flex justify-content-between align-items-center">
+            <span class="text-700 font-medium">({{ candidates().length }}) Candidates Found</span>
+
+            <div class="flex gap-3 align-items-center">
+                <span class="p-input-icon-left custom-search">
+                    <i class="pi pi-search mr-2"></i>
+                    <input type="text" pInputText placeholder="Search" [ngModel]="searchText()"
+                        (ngModelChange)="searchText.set($event)" class="p-inputtext-sm light-input" />
+                </span>
+                <p-button label="CSV" icon="pi pi-file-excel"
+                    styleClass="p-button-rounded p-button-text p-button-sm csv-button" (onClick)="exportToCSV()">
+                </p-button>
+            </div>
+        </div>
+
+        <!-- Candidates table -->
+        <p-table #dt [value]="candidates()" [paginator]="true" [rows]="5" responsiveLayout="scroll"
+            styleClass="custom-table light-table">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                    <th>Candidate</th>
+                    <th>Email</th>
+                    <th>Contact Number</th>
+                    <th>Date Applied</th>
+                    <th>Stage</th>
+                    <th style="width: 4rem"></th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-candidate>
+                <tr>
+                    <td><p-tableCheckbox [value]="candidate"></p-tableCheckbox></td>
+
+                    <td (click)="editCandidate(candidate)" style="cursor: pointer;">
+                        <div class="flex align-items-center gap-3">
+                            <p-avatar [label]="candidate.firstName.charAt(0)" shape="square" size="large"
+                                styleClass="avatar-blue">
+                            </p-avatar>
+                            <div class="flex flex-column">
+                                <span class="font-semibold text-900">
+                                    {{ candidate.firstName }} {{ candidate.lastName }}
+                                </span>
+                                <span class="text-xs text-500">{{ candidate.vacancyId }}</span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td class="text-700 text-sm">{{ candidate.email }}</td>
+                    <td class="text-700 text-sm">{{ candidate.contactNumber }}</td>
+                    <td class="text-700 text-sm">{{ candidate.dateOfApplication | date:'yyyy-MM-dd' }}</td>
+
+                    <td>
+                        <p-select [options]="stageOptions" [(ngModel)]="candidate.stage" optionLabel="label"
+                            optionValue="value" placeholder="Select a Stage" class="w-full md:w-56"
+                            (onChange)="onStageChange(candidate.id, $event.value)" appendTo="body" />
+                    </td>
+
+                    <td>
+                        <p-button icon="pi pi-ellipsis-v"
+                            styleClass="p-button-rounded p-button-text p-button-sm icon-btn"
+                            (onClick)="menu.toggle($event)">
+                        </p-button>
+                        <p-popover #menu styleClass="candidate-action-popover">
+                            <div class="action-menu">
+                                <button *ngIf="candidate.isEmployee" class="action-item"
+                                    (click)="openAddEmployeeDialog(candidate); menu.hide()">
+                                    <i class="pi pi-plus action-icon action-icon--edit"></i>
+                                    <span>Convert to Employee</span>
+                                </button>
+                                <button class="action-item" (click)="editCandidate(candidate); menu.hide()">
+                                    <i class="pi pi-pencil action-icon action-icon--edit"></i>
+                                    <span>Edit</span>
+                                </button>
+                                <button class="action-item" (click)="sendEmail(candidate); menu.hide()">
+                                    <i class="pi pi-envelope action-icon action-icon--email"></i>
+                                    <span>Send an Email</span>
+                                </button>
+                                <div class="action-divider"></div>
+                                <button class="action-item action-item--danger"
+                                    (click)="deleteCandidate(candidate); menu.hide()">
+                                    <i class="pi pi-trash action-icon"></i>
+                                    <span>Delete</span>
+                                </button>
+                            </div>
+                        </p-popover>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <!-- ═══ ADD CANDIDATE DIALOG ════════════════════════════════════════════════ -->
+    <p-dialog header="Add Candidate" [modal]="true" [(visible)]="visible" [style]="{ width: '70vw', minWidth: '750px' }"
+        styleClass="light-dialog" [draggable]="false">
+
+        <div class=" flex flex-column mt-3">
+
+            <div *ngIf="submitError" class="mb-3 p-3 border-round error-banner text-sm">
+                {{ submitError }}
+            </div>
+
+            <div class="formgrid grid">
+
+                <!-- ROW 1: Name -->
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">First Name *</label>
+                    <input pInputText [(ngModel)]="firstName" name="firstName" class="w-full light-input" />
+                </div>
+
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Middle Name</label>
+                    <input pInputText [(ngModel)]="middleName" name="middleName" class="w-full light-input" />
+                </div>
+
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Last Name *</label>
+                    <input pInputText [(ngModel)]="lastName" name="lastName" class="w-full light-input" />
+                </div>
+
+                <!-- ROW 2: Vacancy -->
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Vacancy</label>
+                    <p-select [options]="vacancies" [(ngModel)]="selectedVacancy" optionLabel="title" optionValue="id"
+                        placeholder="Select a Vacancy" class="w-full md:w-56" />
+
+                </div>
+
+                <!-- ROW 3 -->
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Date of Application</label>
+                    <input type="date" [(ngModel)]="dateOfApplication" name="dateOfApplication"
+                        class="w-full light-input" />
+                </div>
+
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Email *</label>
+                    <input type="email" pInputText [(ngModel)]="email" name="email" class="w-full light-input" />
+                </div>
+
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Contact Number</label>
+                    <input type="text" pInputText [(ngModel)]="contactNumber" name="contactNumber"
+                        class="w-full light-input" />
+                </div>
+
+                <!-- ROW 4: Social -->
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Facebook</label>
+                    <input type="text" pInputText [(ngModel)]="facebook" name="facebook" class="w-full light-input" />
+                </div>
+
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">X (Twitter)</label>
+                    <input type="text" pInputText [(ngModel)]="twitter" name="twitter" class="w-full light-input" />
+                </div>
+
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">LinkedIn</label>
+                    <input type="text" pInputText [(ngModel)]="linkedIn" name="linkedIn" class="w-full light-input" />
+                </div>
+
+                <!-- ROW 5: Keywords + Source -->
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Keywords</label>
+                    <input type="text" pInputText [(ngModel)]="keywords" name="keywords"
+                        placeholder="Enter comma separated words" class="w-full light-input" />
+                </div>
+
+                <div class="field col-12 md:col-4 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Resume</label>
+                    <div class="resume-upload-area w-full">
+                        <input #resumeInput type="file" accept=".pdf" (change)="onResumeSelected($event)"
+                            class="hidden" />
+                        <p-button icon="pi pi-upload" label="Upload Resume"
+                            styleClass="p-button-outlined upload-btn w-full" [style]="{ width: '100%' }"
+                            (onClick)="resumeInput.click()">
+                        </p-button>
+                    </div>
+                    <span *ngIf="resumeFile" class="text-xs text-500 mt-1">
+                        <i class="pi pi-file mr-1"></i>{{ resumeFile.name }}
+                    </span>
+                </div>
+
+                <div class="field col-12 md:col-4"></div>
+
+                <!-- ROW 6: Notes -->
+                <div class="field col-12 flex flex-column gap-2">
+                    <label class="font-semibold text-sm text-700">Notes</label>
+                    <textarea [(ngModel)]="notes" name="notes" class="w-full light-input" rows="3"
+                        placeholder="Enter any other notes about the candidate">
+                    </textarea>
+                </div>
+
+            </div>
+
+            <div class="flex justify-content-between align-items-center mt-3 pt-4 dialog-footer">
+                <span class="text-sm text-500">* Required</span>
+                <div class="flex gap-3">
+                    <p-button label="Cancel" severity="secondary" type="button" (onClick)="closeDialog()"
+                        styleClass="cancel-btn">
+                    </p-button>
+                    <p-button label="Save" type="button" (onClick)="onSubmit()" styleClass="add-btn px-4">
+                    </p-button>
+                </div>
+            </div>
+
+        </div>
+    </p-dialog>
+
+    <app-dynamic-form-dialog header="Add Employee" [(visible)]="showAddEmployeeDialog" [form]="employeeForm"
+        [fields]="employeeFields" (saved)="onEmployeeSaved($event)">
+    </app-dynamic-form-dialog>
+
+</div>

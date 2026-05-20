@@ -1,0 +1,92 @@
+/* ═══ INFO ROWS ══════════════════════════════════════════════════════════ */
+.info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem 0;
+}
+
+.info-label {
+    color: #6b7280;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.info-value {
+    color: #1a1a1a;
+    font-size: 0.95rem;
+}
+
+/* ═══ MINI TABS (Work Information / Contract details) ══════════════════════ */
+.mini-tab {
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background 0.2s ease, color 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.mini-tab:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.mini-tab--active {
+    background: #ffffff;
+    color: #2563eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* ═══ PRIMENG p-tabs override ═══════════════════════════════════════════ */
+:host ::ng-deep .light-tabs .p-tablist {
+    background: transparent;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 1rem;
+}
+
+:host ::ng-deep .light-tabs .p-tab {
+    background: transparent !important;
+    color: #6b7280 !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    padding: 1rem 1.25rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    margin-bottom: -1px !important;
+}
+
+:host ::ng-deep .light-tabs .p-tab:hover {
+    color: #374151 !important;
+}
+
+:host ::ng-deep .light-tabs .p-tab-active {
+    color: #ef4444 !important;
+    border-bottom-color: #ef4444 !important;
+    font-weight: 600 !important;
+}
+
+:host ::ng-deep .light-tabs .p-tablist-active-bar {
+    display: none !important;
+}
+
+/* ═══ EMPTY STATE ═══════════════════════════════════════════════════════ */
+.empty-tab {
+    min-height: 300px;
+    color: #9ca3af;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    color: #d1d5db;
+}
+
+.empty-text {
+    font-size: 0.95rem;
+    color: #6b7280;
+}

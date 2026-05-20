@@ -1,0 +1,187 @@
+<div class="details-page p-1 flex gap-3 border-round" *ngIf="candidateData; else notFound">
+
+    <!-- ═══ LEFT SIDEBAR (PROFILE) ═══════════════════════════════════════════ -->
+    <div class="profile-card w-20rem p-4 flex flex-column align-items-center flex-shrink-0 mt-1">
+
+        <!-- Avatar -->
+        <div class="relative mb-3">
+            <p-avatar image="https://i.pravatar.cc/150?u=Callie" shape="circle" styleClass="profile-avatar"
+                [style]="{'width': '110px', 'height': '110px'}"></p-avatar>
+            <button class="edit-avatar-btn absolute bottom-0 right-0">
+                <i class="pi pi-pencil"></i>
+            </button>
+        </div>
+
+        <h2 class="profile-name m-0 text-center">
+            {{ candidateData.firstName }} {{ candidateData.lastName }}
+        </h2>
+
+        <span *ngIf="currentVacancyTitle" class="position-badge mt-2">{{ currentVacancyTitle }}</span>
+
+        <p-button class="mt-3" label="Add as Employee" icon="pi pi-user-plus" severity="secondary" variant="text"
+            (onClick)="openAddEmployeeDialog(candidateData)" />
+
+        <!-- Current Stage -->
+        <div class="stage-block w-full mt-4 p-3 border-round">
+            <span class="stage-label block mb-2">Current Stage</span>
+            <p-select [options]="stageOptions" [(ngModel)]="selectedStage" optionLabel="label" optionValue="value"
+                placeholder="Select a Stage" class="w-full md:w-56" (onChange)="onStageChange()" />
+        </div>
+
+    </div>
+
+    <!-- ═══ RIGHT PANEL (DATA) ═══════════════════════════════════════════════ -->
+    <div class="data-card flex-1 flex flex-column mt-1 overflow-hidden">
+
+        <p-tabs [(value)]="activeTabValue" styleClass="light-tabs">
+
+            <p-tablist>
+                <p-tab value="details">
+                    <i class="pi pi-id-card mr-2"></i>
+                    <span>Details</span>
+                </p-tab>
+                <p-tab value="resume">
+                    <i class="pi pi-file mr-2"></i>
+                    <span>Resume</span>
+                </p-tab>
+                <p-tab value="notes">
+                    <i class="pi pi-comment mr-2"></i>
+                    <span>Scheduled interviews</span>
+                </p-tab>
+            </p-tablist>
+
+            <p-tabpanels>
+
+                <!-- ═══ TAB: DETAILS ═══ -->
+                <p-tabpanel value="details">
+
+                    <!-- Section 1: Job Details -->
+                    <div class="section-header-row">
+                        <i class="pi pi-briefcase"></i>
+                        <span>Vacancy and Job Details</span>
+                    </div>
+                    <div class="formgrid grid mb-5">
+                        <div class="field col-12 md:col-4 flex flex-column gap-2">
+                            <label class="field-label">Vacancy</label>
+                            <p-select [options]="vacancies" [(ngModel)]="selectedVacancy" optionLabel="title"
+                                optionValue="id" placeholder="Select a Vacancy" class="w-full md:w-56" />
+                        </div>
+                        <div class="field col-12 md:col-4 flex flex-column gap-2">
+                            <label class="field-label">Job Title</label>
+                            <div class="w-full readonly-input">HR Assistant</div>
+                        </div>
+                        <div class="field col-12 md:col-4 flex flex-column gap-2">
+                            <label class="field-label">Date of Application</label>
+                            <div class="date-wrapper">
+                                <i class="pi pi-calendar date-icon"></i>
+                                <div class="w-full readonly-input date-readonly">
+                                    {{ candidateData.dateOfApplication | date:'mediumDate' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Personal Details -->
+                    <div class="section-header-row">
+                        <i class="pi pi-user"></i>
+                        <span>Personal Details</span>
+                    </div>
+                    <div class="formgrid grid mb-5">
+                        <div class="field col-12 md:col-4 flex flex-column gap-2">
+                            <label class="field-label">First Name <span class="required">*</span></label>
+                            <input type="text" pInputText [(ngModel)]="candidateData.firstName"
+                                class="w-full light-input" />
+                        </div>
+                        <div class="field col-12 md:col-4 flex flex-column gap-2">
+                            <label class="field-label">Middle Name</label>
+                            <input type="text" pInputText [(ngModel)]="candidateData.middleName"
+                                class="w-full light-input" />
+                        </div>
+                        <div class="field col-12 md:col-4 flex flex-column gap-2">
+                            <label class="field-label">Last Name <span class="required">*</span></label>
+                            <input type="text" pInputText [(ngModel)]="candidateData.lastName"
+                                class="w-full light-input" />
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Contact Details -->
+                    <div class="section-header-row">
+                        <i class="pi pi-envelope"></i>
+                        <span>Contact Details</span>
+                    </div>
+                    <div class="formgrid grid mb-3">
+                        <div class="field col-12 md:col-4 flex flex-column gap-2">
+                            <label class="field-label">Email <span class="required">*</span></label>
+                            <input type="email" pInputText [(ngModel)]="candidateData.email"
+                                class="w-full light-input" />
+                        </div>
+                        <div class="field col-12 md:col-4 flex flex-column gap-2">
+                            <label class="field-label">Contact Number</label>
+                            <input type="text" pInputText [(ngModel)]="candidateData.contactNumber"
+                                class="w-full light-input" />
+                        </div>
+                        <div class="field col-12 md:col-4 flex flex-column gap-2">
+                            <label class="font-semibold text-sm text-700">Resume <span class="required">*</span></label>
+                            <div class="resume-upload-area w-full">
+                                <input #resumeInput type="file" accept=".pdf" (change)="onResumeSelected($event)"
+                                    class="hidden" />
+                                <p-button icon="pi pi-upload" label="Upload Resume"
+                                    styleClass="p-button-outlined upload-btn w-full" [style]="{ width: '100%' }"
+                                    (onClick)="resumeInput.click()">
+                                </p-button>
+                            </div>
+                            <span *ngIf="resumeFile" class="text-xs text-500 mt-1">
+                                <i class="pi pi-file mr-1"></i>{{ resumeFile.name }}
+                            </span>
+                        </div>
+
+                    </div>
+                    <div class="flex justify-content-end">
+                        <p-button label="Save" icon="pi pi-save" pTooltip="Save changes" styleClass="add-btn px-3"
+                            (onClick)="onSave()">
+                        </p-button>
+                    </div>
+
+                </p-tabpanel>
+
+                <!-- ═══ TAB: RESUME ═══ -->
+                <p-tabpanel value="resume">
+                    <div class="resume-viewer w-full">
+                        <ng-container *ngIf="candidateData.resumeFile; else noResume">
+                            <iframe [src]="getResumeUrl(candidateData.id) | safe" width="100%" height="700px"
+                                style="border: none;">
+                            </iframe>
+                        </ng-container>
+                        <ng-template #noResume>
+                            <div class="empty-tab flex flex-column justify-content-center align-items-center">
+                                <i class="pi pi-inbox empty-icon"></i>
+                                <span class="empty-text mt-3">No resume uploaded</span>
+                            </div>
+                        </ng-template>
+                    </div>
+                </p-tabpanel>
+                <!-- ═══ TAB: NOTES ═══ -->
+                <p-tabpanel value="notes">
+                    <div class="empty-tab flex flex-column justify-content-center align-items-center">
+                        <i class="pi pi-inbox empty-icon"></i>
+                        <span class="empty-text mt-3">Notes content will appear here</span>
+                    </div>
+                </p-tabpanel>
+
+            </p-tabpanels>
+        </p-tabs>
+
+    </div>
+</div>
+
+<ng-template #notFound>
+    <div class="flex justify-content-center align-items-center h-screen">
+        <span class="text-500">Candidate not found.</span>
+    </div>
+</ng-template>
+
+<!-- <p-button label="Add Employee" icon="pi pi-plus" (onClick)="showAddEmployeeDialog = true" /> -->
+
+<app-dynamic-form-dialog header="Add Employee" [(visible)]="showAddEmployeeDialog" [form]="employeeForm"
+    [fields]="employeeFields" (saved)="onEmployeeSaved($event)">
+</app-dynamic-form-dialog>

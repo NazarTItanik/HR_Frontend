@@ -1,0 +1,18 @@
+.header-link {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.header-link:hover {
+    color: var(--primary-color);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem !important;
+    border-radius: 0px;
+}

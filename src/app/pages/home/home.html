@@ -1,0 +1,104 @@
+<div class="dashboard-page">
+    <div class="dashboard-header mb-4">
+        <h1 class="page-title">HR Dashboard</h1>
+    </div>
+
+    <!-- Top row: 4 columns -->
+    <div class="top-stats-grid mb-4">
+
+        <div class="stat-card border-top-green">
+            <div class="stat-label">New Joining Today</div>
+            <div class="stat-value">{{ newJoiningToday() }}</div>
+        </div>
+
+        <div class="stat-card border-top-orange">
+            <div class="stat-label">New Joining This Week</div>
+            <div class="stat-value">{{ newJoiningThisWeek() }}</div>
+        </div>
+
+        <div class="stat-card border-top-blue">
+            <div class="stat-label">Total Strength</div>
+            <div class="stat-value">{{ totalEmployees() }}</div>
+        </div>
+
+        <div class="birthday-card">
+            <p-avatar icon="pi pi-user" size="large" shape="circle" styleClass="birthday-avatar"></p-avatar>
+            <div>
+                <div class="birthday-label">Birthday</div>
+                <div class="birthday-name">Anna Smith</div>
+                <div class="birthday-date">19 May &nbsp;·&nbsp; In 18 Days</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom row: 3 columns (table spans 2) -->
+    <div class="main-content-grid">
+
+        <!-- Table (spans 2 columns) -->
+        <div class="card col-span-2">
+            <div class="card-header">
+                <span class="card-title">Recent Employees</span>
+            </div>
+            <p-table [value]="employees()" [loading]="loading()" [rows]="5" styleClass="p-datatable-sm custom-table">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Department</th>
+                        <th>Hire Date</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-emp>
+                    <tr>
+                        <td>
+                            <div class="emp-cell">
+                                <p-avatar [label]="emp.firstName.charAt(0) + emp.lastName.charAt(0)" shape="circle"
+                                    styleClass="avatar-indigo"></p-avatar>
+                                <span>{{ emp.firstName }} {{ emp.lastName }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="dept-badge">{{ emp.department }}</span>
+                        </td>
+                        <td class="text-muted">{{ emp.hireDate | date:'dd/MM/yyyy' }}</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <!-- Online Employees -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">
+                    <span class="online-dot"></span> Online Employees
+                </span>
+                <i class="pi pi-times icon-btn"></i>
+            </div>
+            <div class="empty-state">
+                <div class="empty-icon-wrap">
+                    <i class="pi pi-search"></i>
+                </div>
+                <p class="empty-title">No records found</p>
+                <p class="empty-sub">No records available at the moment.</p>
+            </div>
+        </div>
+
+        <!-- Announcements -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Announcements</span>
+                <button class="plus-btn">+</button>
+            </div>
+            <div class="announcement-list">
+                <div class="announcement-item">
+                    <p-avatar label="AS" shape="circle" styleClass="avatar-purple"></p-avatar>
+                    <span class="ann-text">System maintenance at 00:00</span>
+                </div>
+                <div class="announcement-item">
+                    <p-avatar label="HR" shape="circle" styleClass="avatar-pink"></p-avatar>
+                    <span class="ann-text">Please submit timesheets</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

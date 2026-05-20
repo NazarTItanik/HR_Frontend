@@ -1,0 +1,5 @@
+:host ::ng-deep .avatar-blue {
+    background: #e0f2fe !important;
+    color: #2563eb !important;
+    font-weight: 600;
+}

@@ -1,0 +1,83 @@
+<p-dialog [header]="header" [modal]="true" [visible]="visible" [style]="{ width: '70vw', minWidth: '750px' }"
+    styleClass="light-dialog" [draggable]="false" (onHide)="onHide()">
+
+    <div class="flex flex-column mt-3">
+
+        <div *ngIf="submitError" class="mb-3 p-3 border-round error-banner text-sm">
+            {{ submitError }}
+        </div>
+
+        <form [formGroup]="form" class="formgrid grid">
+            <div *ngFor="let field of fields" class="field flex flex-column gap-2"
+                [class]="'col-12 md:col-' + (field.colSpan ?? 6)">
+
+                <label class="font-semibold text-sm text-700">
+                    {{ field.label }}<span *ngIf="field.required"> *</span>
+                </label>
+
+                <!-- TEXT / EMAIL -->
+                <ng-container *ngIf="field.type === 'text' || field.type === 'email'">
+                    <input pInputText [type]="field.type" [formControlName]="field.key"
+                        [placeholder]="field.placeholder ?? ''" class="w-full light-input"
+                        [class.ng-invalid]="isInvalid(field.key)" [class.ng-dirty]="isInvalid(field.key)" />
+                </ng-container>
+
+                <!-- TEXTAREA -->
+                <ng-container *ngIf="field.type === 'textarea'">
+                    <textarea pInputTextarea [formControlName]="field.key" [placeholder]="field.placeholder ?? ''"
+                        [rows]="field.rows ?? 3" class="w-full light-input" [class.ng-invalid]="isInvalid(field.key)"
+                        [class.ng-dirty]="isInvalid(field.key)">
+                    </textarea>
+                </ng-container>
+
+                <!-- NUMBER -->
+                <ng-container *ngIf="field.type === 'number'">
+                    <p-inputnumber [formControlName]="field.key" [mode]="field.numberMode ?? 'decimal'"
+                        [currency]="field.currency ?? 'USD'" [locale]="field.locale ?? 'en-US'" [min]="field.min ?? 0"
+                        [max]="field.max ?? undefined" class="w-full" styleClass="w-full light-input"
+                        [class.ng-invalid]="isInvalid(field.key)" [class.ng-dirty]="isInvalid(field.key)" />
+                </ng-container>
+
+                <!-- DATE -->
+                <ng-container *ngIf="field.type === 'date'">
+                    <p-datepicker [formControlName]="field.key" [showIcon]="true" dateFormat="yy-mm-dd" class="w-full"
+                        appendTo="body" styleClass="w-full light-input" [class.ng-invalid]="isInvalid(field.key)"
+                        [class.ng-dirty]="isInvalid(field.key)" />
+                </ng-container>
+
+                <!-- SELECT -->
+                <ng-container *ngIf="field.type === 'select'">
+                    <p-select [options]="field.options ?? []" [formControlName]="field.key"
+                        [optionLabel]="field.optionLabel ?? 'label'" [optionValue]="field.optionValue ?? 'value'"
+                        [placeholder]="field.placeholder ?? 'Select...'" class="w-full"
+                        [class.ng-invalid]="isInvalid(field.key)" [class.ng-dirty]="isInvalid(field.key)"
+                        appendTo="body" />
+                </ng-container>
+
+                <ng-container *ngIf="field.type === 'multiselect'">
+                    <p-multiSelect [options]="field.options ?? []" [formControlName]="field.key"
+                        [optionLabel]="field.optionLabel ?? 'label'" [optionValue]="field.optionValue ?? 'value'"
+                        [placeholder]="field.placeholder ?? 'Select...'" class="w-full" styleClass="w-full light-input"
+                        [class.ng-invalid]="isInvalid(field.key)" [class.ng-dirty]="isInvalid(field.key)"
+                        appendTo="body" display="chip" />
+                </ng-container>
+
+                <!-- ERRORS -->
+                <small class="p-error text-red-500 text-xs" *ngIf="isInvalid(field.key)">
+                    {{ getErrorMessage(field) }}
+                </small>
+
+            </div>
+        </form>
+
+        <div class="flex justify-content-between align-items-center mt-3 pt-4 dialog-footer">
+            <span class="text-sm text-500">* Required</span>
+            <div class="flex gap-3">
+                <p-button label="Cancel" severity="secondary" type="button" (onClick)="onCancel()"
+                    styleClass="cancel-btn" />
+                <p-button [label]="saveLabel" type="button" (onClick)="onSubmit()" styleClass="add-btn px-4" />
+            </div>
+        </div>
+
+    </div>
+</p-dialog>

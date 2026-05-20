@@ -1,0 +1,241 @@
+<div class="card surface-card border-round-xl shadow-2 m-4 p-4">
+
+    <div
+        class="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center mb-4 gap-3">
+        <div class="flex gap-3">
+            <h1 class="text-3xl font-bold m-0 text-900">Attendances</h1>
+            <!-- <div class="flex justify-content-between align-items-center mb-3">
+
+                <p-button *ngIf="selectedAttendances.length> 0" severity="danger" (onClick)="onDeleteSelected()">Delete
+                    All
+                    Selected</p-button>
+            </div> -->
+        </div>
+
+        <div class="flex flex-wrap align-items-center gap-2">
+            <span class="p-input-icon-left">
+                <i class="pi pi-search"></i>
+                <input style="margin-left: 1.0rem;" pInputText type="text" placeholder="Search" class="w-15rem"
+                    [ngModel]="searchText()" (ngModelChange)="searchText.set($event)" />
+            </span>
+
+            <p-button icon="pi pi-filter" label="Filter" severity="secondary" [outlined]="true"></p-button>
+
+            <p-button icon="pi pi-plus" label="Create" severity="success" (onClick)="onCreate()"></p-button>
+        </div>
+    </div>
+
+    <p-tabs [value]="activeTabValue" styleClass="light-tabs" (valueChange)="onTabChange($event)">
+
+        <p-tablist>
+            <p-tab value="pending">
+                <span>Pending</span>
+            </p-tab>
+            <p-tab value="validated">
+                <span>Approved</span>
+            </p-tab>
+            <p-tab value="rejected">
+                <span>Rejected</span>
+            </p-tab>
+        </p-tablist>
+
+        <p-tabpanels>
+            <p-tabpanel value="pending">
+                <div class="flex align-items-center mb-3" *ngIf="selectedAttendances.length > 0">
+                    <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
+                        (onClick)="onDeleteSelected()"></p-button>
+                    <span class="ml-3">{{ selectedAttendances.length }} items selected</span>
+                </div>
+
+                <div class="pt-3">
+                    <p-table [value]="filteredPending()" [(selection)]="selectedAttendances" dataKey="id"
+                        [paginator]="true" [rows]="10" styleClass="custom-table light-table">
+
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                                <th class="text-center">Employee</th>
+                                <th class="text-center">Date</th>
+                                <th class="text-center">Check In</th>
+                                <th class="text-center">Check Out</th>
+                                <th class="text-center">Total Hours</th>
+                                <th class="text-center" style="width: 8rem">Actions</th>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="body" let-attendance>
+                            <tr [pSelectableRow]="attendance">
+                                <td><p-tableCheckbox [value]="attendance"></p-tableCheckbox></td>
+
+                                <td>
+                                    <div class="flex align-items-center gap-3">
+                                        <p-avatar [label]="attendance.employee?.firstName?.charAt(0) || 'U'"
+                                            shape="square" size="large" styleClass="avatar-blue"></p-avatar>
+                                        <div class="flex flex-column">
+                                            <span class="font-semibold text-900">
+                                                {{ attendance.employee?.firstName }} {{ attendance.employee?.lastName }}
+                                            </span>
+                                            <span class="text-xs text-500">{{ attendance.employee?.email || 'No email'
+                                                }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-center">{{ attendance.date | date:'yyyy-MM-dd' }}</td>
+                                <td class="text-center">{{ attendance.clockIn | date:'HH:mm' }}</td>
+                                <td class="text-center">{{ attendance.clockOut | date:'HH:mm' }}</td>
+                                <td class="text-center">{{ attendance.totalHoursWorked | number:'1.1-2' }}</td>
+
+                                <td class="text-center">
+                                    <div class="flex gap-2">
+                                        <p-button icon="pi pi-pencil" severity="secondary"
+                                            (onClick)="onEdit(attendance)" pTooltip="Edit"></p-button>
+                                        <p-button icon="pi pi-times" severity="danger" pTooltip="Reject"></p-button>
+                                        <p-button icon="pi pi-check" severity="success"
+                                            (onClick)="onValidateAttendance(attendance.id)"
+                                            pTooltip="Validate"></p-button>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="7" class="text-center p-5 text-500">
+                                    No pending records to validate
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </p-tabpanel>
+
+            <p-tabpanel value="validated">
+                <div class="flex align-items-center mb-3" *ngIf="selectedAttendances.length > 0">
+                    <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
+                        (onClick)="onDeleteSelected()"></p-button>
+                    <span class="ml-3">{{ selectedAttendances.length }} items selected</span>
+                </div>
+                <div class="pt-3">
+                    <p-table [value]="filteredValidated()" [(selection)]="selectedAttendances" dataKey="id"
+                        [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="custom-table light-table">
+
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                                <th class="text-center">Employee</th>
+                                <th class="text-center">Date</th>
+                                <th class="text-center">Check In</th>
+                                <th class="text-center">Check Out</th>
+                                <th class="text-center">Hours in Total</th>
+                                <th class="text-center" style="width: 10rem">Status</th>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="body" let-attendance>
+                            <tr>
+                                <td><p-tableCheckbox [value]="attendance"></p-tableCheckbox></td>
+                                <td>
+                                    <div class="flex align-items-center gap-3">
+                                        <p-avatar [label]="attendance.employee?.firstName?.charAt(0) || 'U'"
+                                            shape="square" size="large" styleClass="avatar-blue"></p-avatar>
+                                        <div class="flex flex-column">
+                                            <span class="font-semibold text-900">
+                                                {{ attendance.employee?.firstName }} {{ attendance.employee?.lastName }}
+                                            </span>
+                                            <span class="text-xs text-500">{{ attendance.employee?.email || 'No email'
+                                                }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-700 text-sm text-center">{{ attendance.date | date:'yyyy-MM-dd' }}</td>
+                                <td class="text-700 text-sm text-center">{{ attendance.clockIn | date:'HH:mm' }}</td>
+                                <td class="text-700 text-sm text-center">{{ attendance.clockOut | date:'HH:mm' }}</td>
+                                <td class="text-700 text-sm font-medium text-center">{{ attendance.totalHoursWorked |
+                                    number:'1.1-2'
+                                    }}</td>
+
+                                <td>
+                                    <div class="flex align-items-center gap-2 text-700 text-sm">
+
+                                <td><p-tag value="Approved" severity="success"></p-tag></td>
+                </div>
+                </td>
+                </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="6" class="text-center p-5 text-500">No approved records yet</td>
+                    </tr>
+                </ng-template>
+                </p-table>
+</div>
+</p-tabpanel>
+<p-tabpanel value="rejected">
+    <div class="flex align-items-center mb-3" *ngIf="selectedAttendances.length > 0">
+        <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
+            (onClick)="onDeleteSelected()"></p-button>
+        <span class="ml-3">{{ selectedAttendances.length }} items selected</span>
+    </div>
+    <div class="pt-3">
+        <p-table [value]="filteredRejected()" [(selection)]="selectedAttendances" dataKey="id" [paginator]="true"
+            [rows]="10" styleClass="custom-table light-table">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                    <th class="text-center">Employee</th>
+                    <th class="text-center">Date</th>
+                    <th class="text-center">Check In</th>
+                    <th class="text-center">Check Out</th>
+                    <th class="text-center">Total Hours</th>
+                    <th class="text-center" style="width: 8rem">Actions</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-attendance>
+                <tr [pSelectableRow]="attendance">
+                    <td><p-tableCheckbox [value]="attendance"></p-tableCheckbox></td>
+
+                    <td>
+                        <div class="flex align-items-center gap-3">
+                            <p-avatar [label]="attendance.employee?.firstName?.charAt(0) || 'U'" shape="square"
+                                size="large" styleClass="avatar-blue"></p-avatar>
+                            <div class="flex flex-column">
+                                <span class="font-semibold text-900">
+                                    {{ attendance.employee?.firstName }} {{ attendance.employee?.lastName }}
+                                </span>
+                                <span class="text-xs text-500">{{ attendance.employee?.email || 'No email'
+                                    }}</span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td class="text-center">{{ attendance.date | date:'yyyy-MM-dd' }}</td>
+                    <td class="text-center">{{ attendance.clockIn | date:'HH:mm' }}</td>
+                    <td class="text-center">{{ attendance.clockOut | date:'HH:mm' }}</td>
+                    <td class="text-center">{{ attendance.totalHoursWorked | number:'1.1-2' }}</td>
+
+                    <td><p-tag value="Rejected" severity="danger"></p-tag></td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="7" class="text-center p-5 text-500">
+                        No records rejected
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</p-tabpanel>
+</p-tabpanels>
+</p-tabs>
+
+<app-dynamic-form-dialog header="Create Attendance" saveLabel="Create" [(visible)]="isCreateModalVisible"
+    [form]="createForm" [fields]="formFields" (saved)="onSaveAttendance($event)">
+</app-dynamic-form-dialog>
+
+</div>

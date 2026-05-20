@@ -1,0 +1,61 @@
+/* ═══ PAGE BASE ══════════════════════════════════════════════════════════ */
+.login-page {
+    min-height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--p-surface-100);
+    padding: 2rem 1rem;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 720px;
+}
+
+/* ═══ FORM GRID ══════════════════════════════════════════════════════════ */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.form-field--full {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ═══ LOGO CIRCLE ════════════════════════════════════════════════════════ */
+.logo-circle {
+    width: 60px;
+    height: 60px;
+    background: var(--p-primary-50);
+    color: var(--p-primary-500);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.5rem;
+}
+
+/* ═══ UTILITIES ═════════════════════════════════════════════════════════ */
+.hidden {
+    display: none;
+}
+
+#notes {
+    width: 100%;
+}

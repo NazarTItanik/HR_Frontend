@@ -1,0 +1,313 @@
+<div class="card surface-card border-round-xl shadow-2 m-4" *ngIf="employee(); else notFound">
+
+    <div class="p-4 border-bottom-1 border-200">
+        <div class="flex justify-content-between align-items-start gap-3">
+
+            <div class="flex align-items-center gap-4">
+                <p-avatar [label]="employee()!.firstName.charAt(0) + employee()!.lastName.charAt(0)" shape="circle"
+                    size="xlarge" [style]="{
+                        'background-color': '#eceff1',
+                        'color': '#212121',
+                        'font-weight': 'bold',
+                        'width': '90px',
+                        'height': '90px',
+                        'font-size': '1.5rem'
+                    }">
+                </p-avatar>
+
+                <div class="flex flex-column gap-2">
+                    <h1 class="text-2xl font-bold m-0 text-900">
+                        {{ employee()!.firstName }} {{ employee()!.lastName }}
+                        <!-- <p-tag [value]="employee()!.status"
+                            [severity]="employee()!.status === 'Active' ? 'success' : 'info'" styleClass="ml-2"></p-tag> -->
+                    </h1>
+                    <h1>{{activeContract()?.baseSalary}}</h1>
+
+                    <div class="flex flex-column gap-1 text-sm text-700">
+                        <div class="flex align-items-center gap-2">
+                            <i class="pi pi-envelope text-500"></i>
+                            <span class="text-500">Email:</span>
+                            <span class="font-medium">{{ employee()!.email }}</span>
+                        </div>
+                        <div class="flex align-items-center gap-2">
+                            <i class="pi pi-phone text-500"></i>
+                            <span class="text-500">Phone:</span>
+                            <!-- <span class="font-medium">{{ employee()!.contactNumber || 'Not provided' }}</span> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex align-items-center gap-2">
+                <p-button icon="pi pi-arrow-left" [rounded]="true" [outlined]="true" severity="secondary"
+                    pTooltip="Back to list" (onClick)="goBack()">
+                </p-button>
+                <p-button icon="pi pi-pencil" [rounded]="true" [outlined]="true" severity="danger" pTooltip="Edit"
+                    (onClick)="onOpenEditDialog()">
+                </p-button>
+                <p-button icon="pi pi-cog" [rounded]="true" [text]="true" severity="secondary" pTooltip="Settings">
+                </p-button>
+            </div>
+        </div>
+    </div>
+
+    <p-tabs [(value)]="activeTabValue" styleClass="light-tabs">
+
+        <p-tablist>
+            <p-tab value="about">
+                <i class="pi pi-user mr-2"></i>
+                <span>About</span>
+            </p-tab>
+            <p-tab value="contract">
+                <i class="pi pi-file-edit mr-2"></i>
+                <span>Contract</span>
+            </p-tab>
+            <p-tab value="attendance">
+                <i class="pi pi-clock mr-2"></i>
+                <span>Attendance</span>
+            </p-tab>
+            <p-tab value="payroll">
+                <i class="pi pi-wallet mr-2"></i>
+                <span>Payroll</span>
+            </p-tab>
+        </p-tablist>
+
+        <p-tabpanels>
+
+            <p-tabpanel value="about">
+                <div class="grid p-3">
+
+                    <div class="col-12 md:col-3">
+                        <div class="surface-50 border-round-lg p-4 h-full">
+                            <h3 class="text-lg font-bold text-900 mt-0 mb-4">Account Information</h3>
+
+                            <div class="flex flex-column gap-3">
+                                <div class="info-row flex justify-content-between surface-border pb-2">
+                                    <span class="info-label text-600">
+                                        <i class="pi pi-shield mr-2"></i>System Role
+                                    </span>
+                                    <span class="info-value font-medium text-900">{{ employee()!.role }}</span>
+                                </div>
+
+                                <div class="info-row flex justify-content-betwee surface-border pb-2">
+                                    <span class="info-label text-600">
+                                        <i class="pi pi-phone mr-2"></i>Contact Number
+                                    </span>
+                                    <!-- <span class="info-value font-medium text-900">{{ employee()!.contactNumber || 'N/A'
+                                        }}</span> -->
+                                </div>
+
+                                <div class="info-row flex justify-content-between surface-border pb-2">
+                                    <span class="info-label text-600">
+                                        <i class="pi pi-check-circle mr-2"></i>Account Status
+                                    </span>
+                                    <span class="info-value font-medium text-900">{{ employee()!.status }}</span>
+                                </div>
+
+                                <div class="info-row flex justify-content-between surface-border pb-2">
+                                    <span class="info-label text-600">
+                                        <i class="pi pi-calendar-plus mr-2"></i>Profile Created
+                                    </span>
+                                    <span class="info-value font-medium text-900">{{ employee()!.createdAt |
+                                        date:'mediumDate' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 md:col-9">
+                        <div class="surface-50 border-round-lg p-4 h-full">
+                            <h3 class="text-lg font-bold text-900 mt-0 mb-4">Current Employment Details</h3>
+
+                            <div class="grid">
+                                <div class="col-12 md:col-6 mb-3">
+                                    <div class="info-row">
+                                        <span class="info-label block text-600 text-sm mb-1">
+                                            <i class="pi pi-id-card mr-2"></i>Job Position
+                                        </span>
+                                        <span class="info-value font-semibold text-lg text-900">
+                                            {{ activeContract()?.vacancy?.title || 'No Active Position' }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6 mb-3">
+                                    <div class="info-row">
+                                        <span class="info-label block text-600 text-sm mb-1">
+                                            <i class="pi pi-calendar mr-2"></i>Hire Date
+                                        </span>
+                                        <span class="info-value font-semibold text-lg text-900">
+                                            {{ employee()!.hireDate | date:'longDate' }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6 mb-3">
+                                    <div class="info-row">
+                                        <span class="info-label block text-600 text-sm mb-1">
+                                            <i class="pi pi-desktop mr-2"></i>Work Type
+                                        </span>
+                                        <span class="info-value font-semibold text-lg text-900">
+                                            {{ activeContract()?.workType || 'N/A' }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6 mb-3">
+                                    <div class="info-row">
+                                        <span class="info-label block text-600 text-sm mb-1">
+                                            <i class="pi pi-wallet mr-2"></i>Wage Type
+                                        </span>
+                                        <span class="info-value font-semibold text-lg text-900">
+                                            {{ activeContract()?.wageType || 'N/A' }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6 mb-3">
+                                    <div class="info-row">
+                                        <span class="info-label block text-600 text-sm mb-1">
+                                            <i class="pi pi-dollar mr-2"></i>Base Salary
+                                        </span>
+                                        <span class="info-value font-semibold text-lg text-green-600">
+                                            <!-- {{ activeContract()?.baseSalary | currency:'USD':'symbol':'1.0-0' || '0' }} -->
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 md:col-6 mb-3">
+                                    <div class="info-row">
+                                        <span class="info-label block text-600 text-sm mb-1">
+                                            <i class="pi pi-file mr-2"></i>Contract Start Date
+                                        </span>
+                                        <span class="info-value font-semibold text-lg text-900">
+                                            <!-- {{ activeContract()?.startDate | date:'mediumDate' || 'N/A' }} -->
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </p-tabpanel>
+
+            <p-tabpanel value="contract">
+                <div class="grid p-3">
+                    <div class="col-12">
+                        <div class="card-section surface-100 border-round-lg p-4 mb-4">
+                            <div class="flex justify-content-between align-items-center mb-4">
+                                <h3 class="text-lg font-bold text-900 m-0">Current Active Contract</h3>
+                                <p-button label="New Contract" icon="pi pi-plus" severity="primary"
+                                    (onClick)="onOpenContractDialog()"></p-button>
+                            </div>
+
+                            <div class="grid" *ngIf="activeContract(); else noContract">
+                                <div class="col-12 md:col-4">
+                                    <span class="info-label mb-1">Base Salary</span>
+                                    <div class="info-value text-xl font-bold">{{ activeContract()!.baseSalary | currency
+                                        }}</div>
+                                </div>
+                                <div class="col-12 md:col-4">
+                                    <span class="info-label mb-1">Position</span>
+                                    <div class="info-value font-semibold">{{ activeContract()!.vacancy?.title || 'N/A'
+                                        }}</div>
+                                </div>
+                                <div class="col-12 md:col-4">
+                                    <span class="info-label mb-1">Start Date</span>
+                                    <div class="info-value font-semibold">{{ activeContract()!.startDate |
+                                        date:'longDate' }}</div>
+                                </div>
+                                <div class="col-12 md:col-4">
+                                    <span class="info-label mb-1">Work Type</span>
+                                    <div class="info-value font-semibold">{{ activeContract()!.workType }}</div>
+                                </div>
+                                <div class="col-12 md:col-4">
+                                    <span class="info-label mb-1">Wage Type</span>
+                                    <div class="info-value font-semibold">{{ activeContract()!.wageType }}</div>
+                                </div>
+                                <div class="col-12 md:col-4">
+                                    <span class="info-label mb-1">Status</span>
+                                    <div class="info-value font-semibold"> {{ activeContract()?.isActive ? 'Active' :
+                                        'Inactive'
+                                        }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <ng-template #noContract>
+                                <div class="text-500">No active contract found for this employee.</div>
+                            </ng-template>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <h3 class="text-lg font-bold text-900 mb-3">Contract History</h3>
+                        <p-table [value]="pastContracts()" [paginator]="true" showGridlines [rows]="10"
+                            styleClass="custom-table light-table">
+
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th class="text-center">Position</th>
+                                    <th class="text-center">Salary</th>
+                                    <th class="text-center">Start Date</th>
+                                    <th class="text-center">End Date</th>
+                                    <th class="text-center">Work Type</th>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="body" let-contract>
+                                <tr>
+                                    <td class="text-center">{{ contract.vacancy?.title || 'N/A' }}</td>
+                                    <td class="text-center">{{ contract.baseSalary | currency }}</td>
+                                    <td class="text-center">{{ contract.startDate | date:'yyyy-MM-dd' }}</td>
+                                    <td class="text-center">{{ contract.endDate | date:'yyyy-MM-dd' }}</td>
+                                    <td class="text-center">{{ contract.workType }}</td>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="emptymessage">
+                                <tr>
+                                    <td colspan="5" class="text-center p-5 text-500">
+                                        No contract history available.
+                                    </td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+                </div>
+            </p-tabpanel>
+
+            <p-tabpanel value="attendance">
+                <div class="empty-tab flex flex-column justify-content-center align-items-center p-5">
+                    <i class="pi pi-clock empty-icon text-4xl text-300 mb-3"></i>
+                    <span class="empty-text text-500">Attendance history will appear here</span>
+                </div>
+            </p-tabpanel>
+
+            <p-tabpanel value="payroll">
+                <div class="empty-tab flex flex-column justify-content-center align-items-center p-5">
+                    <i class="pi pi-wallet empty-icon text-4xl text-300 mb-3"></i>
+                    <span class="empty-text text-500">Payslip history will appear here</span>
+                </div>
+            </p-tabpanel>
+
+        </p-tabpanels>
+    </p-tabs>
+
+</div>
+
+<ng-template #notFound>
+    <div class="flex justify-content-center align-items-center" style="min-height: 50vh">
+        <i class="pi pi-spin pi-spinner text-3xl text-primary mr-3"></i>
+        <span class="text-500 text-lg">Loading employee profile...</span>
+    </div>
+</ng-template>
+
+<app-dynamic-form-dialog header="Create New Contract" saveLabel="Create" [(visible)]="isContractModalVisible"
+    [form]="contractForm" [fields]="contractFields" (saved)="onSaveContract($event)">
+</app-dynamic-form-dialog>
+
+<app-dynamic-form-dialog header="Edit Employee Details" saveLabel="Save Changes" [(visible)]="isEditModalVisible"
+    [form]="editForm" [fields]="editFields" (saved)="onSaveEdit($event)">
+</app-dynamic-form-dialog>

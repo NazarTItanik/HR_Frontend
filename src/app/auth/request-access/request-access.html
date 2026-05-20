@@ -1,0 +1,167 @@
+<div class="login-page">
+    <p-toast></p-toast>
+
+    <div class="login-container">
+        <p-card styleClass="shadow-2 border-round-2xl">
+            <ng-template pTemplate="header">
+                <div class="text-center pt-5 pb-3">
+                    <div class="logo-circle">
+                        <i class="pi pi-user-plus text-2xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-900 mt-3 mb-2">Apply to HR System</h1>
+                    <p class="text-500 m-0">Fill out the form to submit your application</p>
+                </div>
+            </ng-template>
+
+            <div *ngIf="submitted" class="text-center p-5">
+                <i class="pi pi-check-circle text-green-500" style="font-size: 4rem"></i>
+                <h2 class="text-900 mt-3 mb-2 text-xl font-bold">Application Submitted!</h2>
+                <p class="text-500 mb-4">Thank you for your interest. Our HR team will review your application.</p>
+                <p-button label="Back to Login" routerLink="/login" severity="danger" [fluid]="true"></p-button>
+            </div>
+
+            <form *ngIf="!submitted" [formGroup]="requestForm" (ngSubmit)="onSubmit()">
+                <div class="form-grid">
+
+                    <div class="form-field">
+                        <p-floatlabel>
+                            <input id="firstName" type="text" pInputText formControlName="firstName" fluid
+                                [ngClass]="{'ng-invalid ng-dirty': requestForm.get('firstName')?.invalid && requestForm.get('firstName')?.touched}" />
+                            <label for="firstName">First Name *</label>
+                        </p-floatlabel>
+                        <span
+                            *ngIf="requestForm.get('firstName')?.errors?.['required'] && requestForm.get('firstName')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            First name is required.
+                        </span>
+                        <span
+                            *ngIf="requestForm.get('firstName')?.errors?.['maxlength'] && requestForm.get('firstName')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            First name cannot exceed 50 characters.
+                        </span>
+                    </div>
+
+                    <div class="form-field">
+                        <p-floatlabel>
+                            <input id="lastName" type="text" pInputText formControlName="lastName" fluid
+                                [ngClass]="{'ng-invalid ng-dirty': requestForm.get('lastName')?.invalid && requestForm.get('lastName')?.touched}" />
+                            <label for="lastName">Last Name *</label>
+                        </p-floatlabel>
+                        <span
+                            *ngIf="requestForm.get('lastName')?.errors?.['required'] && requestForm.get('lastName')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            Last name is required.
+                        </span>
+                        <span
+                            *ngIf="requestForm.get('lastName')?.errors?.['maxlength'] && requestForm.get('lastName')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            Last name cannot exceed 50 characters.
+                        </span>
+                    </div>
+
+                    <div class="form-field">
+                        <p-floatlabel>
+                            <input id="middleName" type="text" pInputText formControlName="middleName" fluid
+                                [ngClass]="{'ng-invalid ng-dirty': requestForm.get('middleName')?.invalid && requestForm.get('middleName')?.touched}" />
+                            <label for="middleName">Middle Name</label>
+                        </p-floatlabel>
+                        <span
+                            *ngIf="requestForm.get('middleName')?.errors?.['maxlength'] && requestForm.get('middleName')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            Middle name cannot exceed 50 characters.
+                        </span>
+                    </div>
+
+                    <div class="form-field">
+                        <p-floatlabel>
+                            <input id="email" type="email" pInputText formControlName="email" fluid
+                                [ngClass]="{'ng-invalid ng-dirty': requestForm.get('email')?.invalid && requestForm.get('email')?.touched}" />
+                            <label for="email">Email *</label>
+                        </p-floatlabel>
+                        <span
+                            *ngIf="requestForm.get('email')?.errors?.['required'] && requestForm.get('email')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            Email is required.
+                        </span>
+                        <span *ngIf="requestForm.get('email')?.errors?.['email'] && requestForm.get('email')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            Please enter a valid email address.
+                        </span>
+                    </div>
+
+                    <div class="form-field">
+                        <p-floatlabel>
+                            <input id="contactNumber" type="text" pInputText formControlName="contactNumber" fluid
+                                [ngClass]="{'ng-invalid ng-dirty': requestForm.get('contactNumber')?.invalid && requestForm.get('contactNumber')?.touched}" />
+                            <label for="contactNumber">Contact Number</label>
+                        </p-floatlabel>
+                        <span
+                            *ngIf="requestForm.get('contactNumber')?.errors?.['maxlength'] && requestForm.get('contactNumber')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            Contact number cannot exceed 20 characters.
+                        </span>
+                    </div>
+
+                    <div class="form-field">
+                        <p-floatlabel>
+                            <p-select id="vacancy" [options]="vacancies" formControlName="vacancyId" optionLabel="title"
+                                optionValue="id" [fluid]="true"
+                                [ngClass]="{'ng-invalid ng-dirty': requestForm.get('vacancyId')?.invalid && requestForm.get('vacancyId')?.touched}">
+                            </p-select>
+                            <label for="vacancy">Position *</label>
+                        </p-floatlabel>
+                        <span
+                            *ngIf="requestForm.get('vacancyId')?.errors?.['required'] && requestForm.get('vacancyId')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            Please select a position.
+                        </span>
+                    </div>
+
+                    <div class="form-field form-field--full">
+                        <p-floatlabel>
+                            <input id="linkedIn" type="text" pInputText formControlName="linkedIn" fluid
+                                [ngClass]="{'ng-invalid ng-dirty': requestForm.get('linkedIn')?.invalid && requestForm.get('linkedIn')?.touched}" />
+                            <label for="linkedIn">LinkedIn Profile</label>
+                        </p-floatlabel>
+                        <span
+                            *ngIf="requestForm.get('linkedIn')?.errors?.['maxlength'] && requestForm.get('linkedIn')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            LinkedIn link cannot exceed 200 characters.
+                        </span>
+                    </div>
+
+                    <div class="form-field form-field--full text-tellus">
+                        <p-floatlabel>
+                            <textarea id="notes" rows="3" pTextarea formControlName="notes" fluid
+                                [ngClass]="{'ng-invalid ng-dirty': requestForm.get('notes')?.invalid && requestForm.get('notes')?.touched}"></textarea>
+                            <label for="notes">Tell us about yourself</label>
+                        </p-floatlabel>
+                        <span
+                            *ngIf="requestForm.get('notes')?.errors?.['maxlength'] && requestForm.get('notes')?.touched"
+                            class="text-red-500 text-xs block mt-1">
+                            This field cannot exceed 1000 characters.
+                        </span>
+                    </div>
+
+                    <div class="form-field form-field--full">
+                        <input #resumeInput type="file" accept=".pdf" (change)="onResumeSelected($event)"
+                            class="hidden" />
+                        <p-button icon="pi pi-upload" label="Upload Resume (PDF/DOC)" severity="secondary"
+                            variant="outlined" [fluid]="true" type="button" (onClick)="resumeInput.click()">
+                        </p-button>
+                        <span *ngIf="resumeFile" class="text-xs text-500 mt-1 block">
+                            <i class="pi pi-file mr-1"></i>{{ resumeFile.name }}
+                        </span>
+                    </div>
+
+                    <div class="form-field form-field--full">
+                        <p-button label="Submit Application" type="submit" severity="success" [fluid]="true"
+                            size="large">
+                        </p-button>
+                    </div>
+
+                </div>
+            </form>
+        </p-card>
+    </div>
+</div>
