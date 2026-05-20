@@ -10,14 +10,21 @@
             <div class="text-sm font-bold text-500 mb-3 uppercase">Payroll Status</div>
 
             <div class="flex flex-column gap-2">
-                <div *ngFor="let summary of statusSummary"
-                    class="flex justify-content-between align-items-center p-2 border-round cursor-pointer hover:surface-hover transition-colors transition-duration-150">
+                <div *ngFor="let summary of statusSummary" (click)="selectStatus(summary.label)"
+                    [class.bg-blue-50]="selectedStatus() === summary.label"
+                    [class.border-blue-500]="selectedStatus() === summary.label"
+                    class="flex justify-content-between align-items-center p-2 border-round cursor-pointer transition-colors transition-duration-200 hover:bg-gray-100">
 
                     <div class="flex align-items-center gap-2">
-                        <i class="pi" [ngClass]="summary.icon" [style.color]="summary.color"></i>
-                        <span class="text-sm font-medium text-700">{{ summary.label }}</span>
+                        <span class="text-sm font-medium" [class.text-blue-700]="selectedStatus() === summary.label"
+                            [class.text-700]="selectedStatus() !== summary.label">
+                            {{ summary.label }}
+                        </span>
                     </div>
-                    <p-badge [value]="summary.count.toString()" severity="secondary"></p-badge>
+
+                    <p-badge [value]="summary.count.toString()"
+                        [severity]="selectedStatus() === summary.label ? 'info' : 'secondary'">
+                    </p-badge>
                 </div>
             </div>
         </div>
@@ -27,12 +34,13 @@
 
         <p-toolbar styleClass="border-round shadow-1">
             <div class="p-toolbar-group-start">
-                <span class="text-700 font-medium text-lg">({{ dummyPayslips.length }}) Payslips Found</span>
+                <span class="text-700 font-medium text-lg">({{ payslips().length }}) Payslips Found</span>
             </div>
             <div class="p-toolbar-group-end flex gap-3 align-items-center">
                 <span class="p-input-icon-left">
                     <i class="pi pi-search"></i>
-                    <input type="text" pInputText placeholder="Search Employee" class="p-inputtext-sm" />
+                    <input type="text" pInputText placeholder="Search Employee"
+                        (input)="searchText.set($any($event.target).value)" class="p-inputtext-sm ml-2" />
                 </span>
                 <p-button label="CSV" icon="pi pi-file-excel" severity="secondary" [text]="true"
                     [rounded]="true"></p-button>
@@ -40,7 +48,13 @@
         </p-toolbar>
 
         <div class="surface-card border-round shadow-1 p-3">
-            <p-table #dt [value]="dummyPayslips" [paginator]="true" [rows]="10" responsiveLayout="scroll">
+            <div class="flex align-items-center mb-3" *ngIf="selectedPayslips.length > 0">
+                <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
+                    (onClick)="onDeleteSelected()"></p-button>
+                <span class="ml-3 font-medium text-700">{{ selectedPayslips.length }} items selected</span>
+            </div>
+            <p-table #dt [value]="filteredPayslips()" [(selection)]="selectedPayslips" [paginator]="true" [rows]="10"
+                responsiveLayout="scroll">
 
                 <ng-template pTemplate="header">
                     <tr>
@@ -61,7 +75,7 @@
 
                         <td class="cursor-pointer">
                             <div class="flex align-items-center gap-3">
-                                <p-avatar [label]="payslip.employeeName.charAt(0)" shape="square" size="large"
+                                <p-avatar [label]="payslip.employeeName?.charAt(0)" shape="square" size="large"
                                     styleClass="bg-blue-100 text-blue-700"></p-avatar>
                                 <span class="font-semibold text-900">{{ payslip.employeeName }}</span>
                             </div>

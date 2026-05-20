@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 
@@ -16,6 +16,9 @@ import { MenuItem } from 'primeng/api';          // Added MenuItem Interface
 import { DynamicFormDialogComponent, DialogFieldConfig } from '../../common/dynamic-form-dialog/dynamic-form-dialog';
 import { ApiService } from '../../services/api-service/api-service';
 import { Employee } from '../../models/Employee';
+import { Payslip } from '../../models/Payslip';
+import { LoadingService } from '../../services/loading-service/loading-service';
+import { Notification } from '../../services/notification/notification';
 
 @Component({
   selector: 'app-payslips',
@@ -29,36 +32,59 @@ import { Employee } from '../../models/Employee';
   templateUrl: './payslips.html',
   styleUrl: './payslips.css',
 })
+
 export class PayslipsComponent implements OnInit {
 
   showGenerateDialog = false;
   generateForm!: FormGroup;
   generateFields: DialogFieldConfig[] = [];
 
-  employees: Employee[] = [];
+  // employees: Employee[] = [];
 
-  statusSummary = [
-    { label: 'All Payslips', count: 2, active: true, icon: 'pi-folder', color: '#64748b' },
-    { label: 'Unpaid', count: 1, active: false, icon: 'pi-clock', color: '#f59e0b' },
-    { label: 'Paid', count: 1, active: false, icon: 'pi-check-circle', color: '#22c55e' }
-  ];
 
-  dummyPayslips = [
-    { id: 1, employeeName: 'Vladyslav D.', periodStart: '2026-05-01', periodEnd: '2026-05-15', generationDate: '2026-05-19', grossSalary: '4000.00', netSalary: '3200.00', status: 'Unpaid' },
-    { id: 2, employeeName: 'Vetal S.', periodStart: '2026-04-15', periodEnd: '2026-04-30', generationDate: '2026-05-01', grossSalary: '3500.00', netSalary: '2800.00', status: 'Paid' }
-  ];
+  statusSummary: Summary[] = [];
 
-  constructor(private fb: FormBuilder, private api: ApiService) { }
+  // statusSummary = [];
+
+  employees = signal<Employee[]>([]);
+
+  payslips = signal<Payslip[]>([]);
+  selectedPayslips: Payslip[] = [];
+
+  searchText = signal('');
+
+  selectedStatus = signal('All Payslips');
+
+  filteredPayslips = computed(() => {
+    const status = this.selectedStatus();
+    const allPayslips = this.payslips();
+    const term = this.searchText();
+
+    if (status === 'All Payslips') {
+      return allPayslips.filter(p => p.employeeName?.includes(term) || p.grossSalary?.toString().includes(term) || p.netSalary?.toString().includes(term));
+    }
+
+    return allPayslips.filter(p => p.status === status && (p.employeeName?.includes(term) || p.grossSalary?.toString().includes(term) || p.netSalary?.toString().includes(term)));
+  });
+
+  // 3. Update your click handler
+  selectStatus(label: string) {
+    this.selectedStatus.set(label);
+  }
+  constructor(private fb: FormBuilder, private api: ApiService, private loading: LoadingService, private notification: Notification) { }
 
   ngOnInit() {
+    // Only call loadEmployees here. It will call onLoadPayslips when it finishes.
     this.loadEmployees();
+
     this.generateForm = this.fb.group({
       startDate: [null, Validators.required],
       endDate: [null, Validators.required],
       employeeIds: [null, Validators.required]
     });
-    this.updateFields();
+    // You don't need updateFields() here anymore either, loadEmployees handles it.
   }
+
   updateFields(): void {
     this.generateFields = [
       { key: 'startDate', label: 'Start Date', type: 'date', required: true, colSpan: 6 },
@@ -70,7 +96,7 @@ export class PayslipsComponent implements OnInit {
         required: true,
         colSpan: 12,
         placeholder: 'Select employees or leave blank for all',
-        options: this.employees,
+        options: this.employees(),
         optionLabel: 'firstName',
         optionValue: 'id',
       }
@@ -87,12 +113,11 @@ export class PayslipsComponent implements OnInit {
       }
     ];
 
-    // Conditionally add "Mark as Paid" if the status is Unpaid
     if (payslip.status === 'Unpaid') {
       items.push({
         label: 'Mark as Paid',
         icon: 'pi pi-check-circle',
-        styleClass: 'text-green-500', // PrimeFlex to make this item green
+        styleClass: 'text-green-500',
         command: () => console.log('Marking as paid:', payslip.id)
       });
     }
@@ -113,13 +138,13 @@ export class PayslipsComponent implements OnInit {
   loadEmployees() {
     this.api.get<Employee[]>('api/Employees/GetEmployees').subscribe({
       next: (employees) => {
-        this.employees = employees;
-        console.log(this.employees);
-        this.updateFields();
+        this.employees.set(employees);
+        this.updateFields(); // Populates the dropdown
+
+        // THE FIX: Now that we 100% have the employees, load the payslips!
+        this.onLoadPayslips();
       },
-      error: (err) => {
-        console.error('Failed to load employees:', err);
-      }
+      error: (err) => console.error('Failed to load employees:', err)
     });
   }
 
@@ -136,26 +161,83 @@ export class PayslipsComponent implements OnInit {
     };
     console.log(payload);
 
-    // Replace '/api/payslips/generatePayslip' with your actual endpoint URL
-    this.api.post<any[]>('api/Payslips/generatePayslip', payload)
+    this.api.post<Payslip[]>('api/Payslips/generatePayslip', payload)
       .subscribe({
         next: (generatedPayslips) => {
-          console.log("generated payslip: ", generatedPayslips);
-          // Update your table with the new data
-          // We use spread syntax to keep existing data and add the new items
-          this.dummyPayslips = [...generatedPayslips, ...this.dummyPayslips];
-
           this.showGenerateDialog = false;
           console.log('Success! Payslips generated:', generatedPayslips);
+          this.onLoadPayslips();
         },
         error: (err) => {
           console.error('Failed to generate payslips:', err);
-          // Optionally: this.submitError = 'Failed to generate, please check dates.';
         }
       });
   }
 
+  onLoadPayslips() {
+    this.api.get<Payslip[]>('api/Payslips').subscribe({
+      next: (data) => {
+        console.log('API Response Data:', data);
+
+        const mappedPayslips = data.map((slip: Payslip) => {
+          const employee = this.employees().find(e => e.id === slip.employeeId);
+          slip.employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown';
+
+
+
+          return {
+            ...slip
+          }
+        });
+        let paidSlipsCount = mappedPayslips.filter(slip => slip.status === "Paid").length;
+        let unpaidSlipsCount = mappedPayslips.filter(slip => slip.status === "Unpaid").length;
+        this.statusSummary = [
+          { label: 'All Payslips', count: paidSlipsCount + unpaidSlipsCount, icon: 'pi-folder', color: '#64748b' },
+          { label: 'Unpaid', count: unpaidSlipsCount, icon: 'pi-clock', color: '#f59e0b' },
+          { label: 'Paid', count: paidSlipsCount, icon: 'pi-check-circle', color: '#22c55e' }
+        ]
+        mappedPayslips.forEach(el => {
+          console.log(el.employeeName);
+
+        });
+
+        this.payslips.set(mappedPayslips);
+      },
+      error: (err) => console.error('Failed to load payslips:', err)
+    });
+  }
+
+
   openDetailDialog(payslip: any) {
     console.log('Viewing details for:', payslip);
   }
+
+  onDeleteSelected(): void {
+    if (this.selectedPayslips.length === 0) return;
+
+    const ids = this.selectedPayslips.map(p => p.id);
+
+    this.loading.show();
+    this.api.post('api/Payslips/delete-multiple', ids).subscribe({
+      next: () => {
+        console.log(`Successfully deleted ${ids.length} payslips`);
+        this.notification.success(`Sucessfullt deleted ${ids.length} payslips`);
+        this.selectedPayslips = [];
+        this.onLoadPayslips();
+        this.loading.hide();
+      },
+      error: (err) => {
+        this.notification.error(`Deletions failed`);
+        this.loading.hide();
+        console.error("Failed to delete selected payslips", err);
+      }
+    });
+  }
+}
+
+export interface Summary {
+  label: string,
+  count: number,
+  icon: string,
+  color: string
 }

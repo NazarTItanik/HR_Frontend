@@ -1,104 +1,173 @@
-<div class="dashboard-page">
-    <div class="dashboard-header mb-4">
-        <h1 class="page-title">HR Dashboard</h1>
+<div class="p-4 min-h-screen">
+
+    <div class="flex justify-content-between align-items-center mb-4">
+        <h1 class="text-3xl font-bold m-0 text-900">HR Dashboard</h1>
+    </div>
+    <div class="grid mb-4">
+        <div class="col-12 md:col-6 xl:col-3">
+            <div
+                class="surface-card shadow-1 p-3 border-round-xl border-top-3 border-green-500 cursor-pointer hover:shadow-4 hover:bg-gray-50 transition-all transition-duration-300">
+                <span class="block text-500 font-medium mb-3 text-sm uppercase">New Joining Today</span>
+                <div class="text-900 font-bold text-3xl">{{ metrics().newJoiningToday }}</div>
+            </div>
+        </div>
+
+        <div class="col-12 md:col-6 xl:col-3">
+            <div
+                class="surface-card shadow-1 p-3 border-round-xl border-top-3 border-orange-500 cursor-pointer hover:shadow-4 hover:bg-gray-50 transition-all transition-duration-300">
+                <span class="block text-500 font-medium mb-3 text-sm uppercase">New Joining This Week</span>
+                <div class="text-900 font-bold text-3xl">{{ metrics().newJoiningThisWeek }}</div>
+            </div>
+        </div>
+
+        <div class="col-12 md:col-6 xl:col-3">
+            <div
+                class="surface-card shadow-1 p-3 border-round-xl border-top-3 border-blue-500 cursor-pointer hover:shadow-4 hover:bg-gray-50 transition-all transition-duration-300">
+                <span class="block text-500 font-medium mb-3 text-sm uppercase">Total Strength</span>
+                <div class="text-900 font-bold text-3xl">{{ metrics().totalEmployees }}</div>
+            </div>
+        </div>
+
+        <div class="col-12 md:col-6 xl:col-3">
+            <div
+                class="surface-card shadow-1 p-3 border-round-xl border-top-3 border-pink-500 flex align-items-center gap-3 h-full cursor-pointer hover:shadow-4 hover:bg-gray-50 transition-all transition-duration-300">
+                <p-avatar icon="pi pi-gift" size="large" shape="circle"
+                    styleClass="bg-pink-100 text-pink-500"></p-avatar>
+                <div class="flex flex-column">
+                    <span class="block text-500 font-medium text-xs mb-1 uppercase">Birthday</span>
+                    <span class="text-900 font-bold">Anna Smith</span>
+                    <span class="text-xs text-500 mt-1">19 May &nbsp;&middot;&nbsp; <span
+                            class="text-pink-500 font-medium">In 18 Days</span></span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Top row: 4 columns -->
-    <div class="top-stats-grid mb-4">
+    <div class="grid">
 
-        <div class="stat-card border-top-green">
-            <div class="stat-label">New Joining Today</div>
-            <div class="stat-value">{{ newJoiningToday() }}</div>
-        </div>
-
-        <div class="stat-card border-top-orange">
-            <div class="stat-label">New Joining This Week</div>
-            <div class="stat-value">{{ newJoiningThisWeek() }}</div>
-        </div>
-
-        <div class="stat-card border-top-blue">
-            <div class="stat-label">Total Strength</div>
-            <div class="stat-value">{{ totalEmployees() }}</div>
-        </div>
-
-        <div class="birthday-card">
-            <p-avatar icon="pi pi-user" size="large" shape="circle" styleClass="birthday-avatar"></p-avatar>
-            <div>
-                <div class="birthday-label">Birthday</div>
-                <div class="birthday-name">Anna Smith</div>
-                <div class="birthday-date">19 May &nbsp;·&nbsp; In 18 Days</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom row: 3 columns (table spans 2) -->
-    <div class="main-content-grid">
-
-        <!-- Table (spans 2 columns) -->
-        <div class="card col-span-2">
-            <div class="card-header">
-                <span class="card-title">Recent Employees</span>
-            </div>
-            <p-table [value]="employees()" [loading]="loading()" [rows]="5" styleClass="p-datatable-sm custom-table">
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th>Employee</th>
-                        <th>Department</th>
-                        <th>Hire Date</th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-emp>
-                    <tr>
-                        <td>
-                            <div class="emp-cell">
-                                <p-avatar [label]="emp.firstName.charAt(0) + emp.lastName.charAt(0)" shape="circle"
-                                    styleClass="avatar-indigo"></p-avatar>
-                                <span>{{ emp.firstName }} {{ emp.lastName }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="dept-badge">{{ emp.department }}</span>
-                        </td>
-                        <td class="text-muted">{{ emp.hireDate | date:'dd/MM/yyyy' }}</td>
-                    </tr>
-                </ng-template>
-            </p-table>
-        </div>
-
-        <!-- Online Employees -->
-        <div class="card">
-            <div class="card-header">
-                <span class="card-title">
-                    <span class="online-dot"></span> Online Employees
-                </span>
-                <i class="pi pi-times icon-btn"></i>
-            </div>
-            <div class="empty-state">
-                <div class="empty-icon-wrap">
-                    <i class="pi pi-search"></i>
+        <div class="col-12 xl:col-8">
+            <div class="surface-card shadow-1 p-4 border-round-xl h-full">
+                <div class="flex justify-content-between align-items-center mb-4">
+                    <span class="text-xl font-bold text-900">Recent Employees</span>
                 </div>
-                <p class="empty-title">No records found</p>
-                <p class="empty-sub">No records available at the moment.</p>
+
+                <p-table [value]="employees()" [rows]="5" styleClass="custom-table light-table"
+                    responsiveLayout="scroll">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th class="text-right">Hire Date</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-emp>
+                        <tr>
+                            <td>
+                                <div class="flex align-items-center gap-3">
+                                    <p-avatar [label]="emp.firstName.charAt(0) + emp.lastName.charAt(0)" shape="square"
+                                        size="large" styleClass="bg-indigo-100 text-indigo-700"></p-avatar>
+                                    <span class="font-semibold text-900">{{ emp.firstName }} {{ emp.lastName }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <!-- <p-tag [value]="emp.department" severity="info"></p-tag> -->
+                            </td>
+                            <td class="text-700 text-sm text-right">{{ emp.hireDate | date:'dd/MM/yyyy' }}</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
             </div>
         </div>
 
-        <!-- Announcements -->
-        <div class="card">
-            <div class="card-header">
-                <span class="card-title">Announcements</span>
-                <button class="plus-btn">+</button>
-            </div>
-            <div class="announcement-list">
-                <div class="announcement-item">
-                    <p-avatar label="AS" shape="circle" styleClass="avatar-purple"></p-avatar>
-                    <span class="ann-text">System maintenance at 00:00</span>
+        <div class="col-12 xl:col-4 flex flex-column gap-4">
+
+            <div class="surface-card shadow-1 p-4 border-round-xl">
+                <div class="flex justify-content-between align-items-center mb-4">
+                    <span class="text-lg font-bold text-900 flex align-items-center">
+                        <span class="bg-green-500 border-circle inline-block mr-2"
+                            style="width: 8px; height: 8px;"></span>
+                        Active Employees
+                    </span>
                 </div>
-                <div class="announcement-item">
-                    <p-avatar label="HR" shape="circle" styleClass="avatar-pink"></p-avatar>
-                    <span class="ann-text">Please submit timesheets</span>
+
+                <div *ngIf="activeEmployeesList().length > 0" class="flex flex-column gap-3">
+                    <div *ngFor="let emp of activeEmployeesList()"
+                        class="flex align-items-center gap-3 p-2 border-round hover:bg-gray-50 transition-all cursor-pointer">
+
+                        <p-avatar [label]="emp.firstName.charAt(0) + emp.lastName.charAt(0)" shape="circle"
+                            styleClass="bg-green-100 text-green-700"></p-avatar>
+
+                        <div class="flex flex-column">
+                            <span class="text-sm font-medium text-900">{{ emp.firstName }} {{ emp.lastName }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="activeEmployeesList().length === 0"
+                    class="flex flex-column align-items-center justify-content-center py-5 text-center">
+                    <div class="bg-gray-100 border-circle flex align-items-center justify-content-center mb-3"
+                        style="width: 3rem; height: 3rem;">
+                        <i class="pi pi-user-minus text-gray-500 text-xl"></i>
+                    </div>
+                    <span class="font-semibold text-900 mb-1">No one online</span>
+                    <span class="text-sm text-500">All employees are currently inactive.</span>
                 </div>
             </div>
-        </div>
 
+            <div class="surface-card shadow-1 p-4 border-round-xl flex-1 flex flex-column">
+                <div class="flex justify-content-between align-items-center mb-4">
+                    <span class="text-lg font-bold text-900">Pending Actions</span>
+
+                    <p-badge *ngIf="(metrics().pendingAttendancesCount + metrics().unpaidPayslipsCount) > 0"
+                        [value]="(metrics().pendingAttendancesCount + metrics().unpaidPayslipsCount).toString()"
+                        severity="warn"> </p-badge>
+                </div>
+
+                <div class="flex flex-column gap-2">
+
+                    <div [routerLink]="['/attendance']" *ngIf="metrics().pendingAttendancesCount > 0"
+                        class="flex align-items-center gap-3 p-3 border-round cursor-pointer hover:bg-gray-100 transition-all transition-duration-200">
+
+                        <div class="flex align-items-center justify-content-center bg-orange-100 border-circle flex-shrink-0"
+                            style="width: 2.5rem; height: 2.5rem;">
+                            <i class="pi pi-clock text-orange-500 text-lg"></i>
+                        </div>
+
+                        <div class="flex flex-column flex-1">
+                            <span class="text-sm font-medium text-900">Review Attendances</span>
+                            <span class="text-xs text-500 mt-1"><span class="font-bold text-orange-500">{{
+                                    metrics().pendingAttendancesCount }}</span> records to validate</span>
+                        </div>
+
+                        <i class="pi pi-chevron-right text-400 text-sm"></i>
+                    </div>
+
+                    <div [routerLink]="['/payslips']" *ngIf="metrics().unpaidPayslipsCount > 0"
+                        class="flex align-items-center gap-3 p-3 border-round cursor-pointer hover:bg-gray-100 transition-all transition-duration-200">
+
+                        <div class="flex align-items-center justify-content-center bg-red-100 border-circle flex-shrink-0"
+                            style="width: 2.5rem; height: 2.5rem;">
+                            <i class="pi pi-wallet text-red-500 text-lg"></i>
+                        </div>
+
+                        <div class="flex flex-column flex-1">
+                            <span class="text-sm font-medium text-900">Unpaid Payslips</span>
+                            <span class="text-xs text-500 mt-1"><span class="font-bold text-red-500">{{
+                                    metrics().unpaidPayslipsCount }}</span> generated payslips require payment</span>
+                        </div>
+
+                        <i class="pi pi-chevron-right text-400 text-sm"></i>
+                    </div>
+
+                    <div *ngIf="metrics().pendingAttendancesCount === 0 && metrics().unpaidPayslipsCount === 0"
+                        class="flex flex-column align-items-center justify-content-center py-4 text-center">
+                        <i class="pi pi-check-circle text-green-500 text-3xl mb-2"></i>
+                        <span class="text-sm text-500 font-medium">All caught up! No pending actions.</span>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>

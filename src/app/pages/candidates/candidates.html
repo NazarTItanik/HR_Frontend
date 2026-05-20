@@ -10,9 +10,10 @@
         <div class="stages-list flex flex-column gap-1 mt-2">
             <div *ngFor="let stage of stagesSummary()"
                 class="stage-item flex justify-content-between align-items-center p-3 border-round cursor-pointer"
-                [class.active-stage]="stage.active" (click)="selectStage(stage.stage)">
+                [class.active-stage]="stage.active" (click)="selectStage(stage.id)">
 
-                <span class="text-sm font-medium stage-label">{{ stage.stage }}</span>
+                <span class="text-sm font-medium stage-label">{{ stage.label }}</span>
+
                 <span class="badge px-2 py-1 border-round text-xs font-bold">
                     {{ stage.count }}
                 </span>

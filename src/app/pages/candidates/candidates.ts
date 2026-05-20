@@ -26,7 +26,8 @@ import { DynamicFormDialogComponent, DialogFieldConfig } from '../../common/dyna
 
 
 export interface StageSummary {
-  stage: CandidateStage;
+  id: string;
+  label: string;
   count: number;
   active: boolean;
 }
@@ -75,7 +76,10 @@ export class CandidatesComponent implements OnInit {
   isSubmitting = false;
   submitError: string | null = null;
 
-  activeStage = signal<CandidateStage | null>(null);
+  // Default to 'All' instead of null
+  activeStage = signal<string>('All');
+
+
   searchText = signal<string>('');
 
   selectedStage: CandidateStage | null = null;
@@ -156,7 +160,9 @@ export class CandidatesComponent implements OnInit {
     const search = this.searchText().toLowerCase().trim();
 
     return this._candidates()
-      .filter(c => !stage || c.stage === stage).map(c => ({ ...c, isEmployee: c.stage === CandidateStage.Hired }))
+      // Modified: Return true if the stage is 'All' OR if it matches
+      .filter(c => stage === 'All' || c.stage === stage)
+      .map(c => ({ ...c, isEmployee: c.stage === CandidateStage.Hired }))
       .filter(c => {
         if (!search) return true;
         const full = `${c.firstName} ${c.lastName}`.toLowerCase();
@@ -165,13 +171,32 @@ export class CandidatesComponent implements OnInit {
   });
 
   // ── Sidebar stage summary (computed) ──────────────────────────────────────
-  stagesSummary = computed<StageSummary[]>(() =>
-    Object.values(CandidateStage).filter(s => isNaN(Number(s))).map(stage => ({
-      stage: stage as CandidateStage,
-      count: this._candidates().filter(c => c.stage === stage).length,
-      active: this.activeStage() === stage,
-    }))
-  );
+  stagesSummary = computed<StageSummary[]>(() => {
+    const allCandidates = this._candidates();
+    const currentStage = this.activeStage();
+
+    // 1. Map the individual stages from the Enum
+    const stages = Object.values(CandidateStage)
+      .filter(s => isNaN(Number(s)))
+      .map(stage => ({
+        id: stage as string,
+        label: stage as string,
+        count: allCandidates.filter(c => c.stage === stage).length,
+        active: currentStage === stage,
+      }));
+
+    // 2. Prepend the 'All Candidates' option to the array
+    return [
+      {
+        id: 'All',
+        label: 'All Candidates',
+        count: allCandidates.length,
+        active: currentStage === 'All'
+      },
+      ...stages
+    ];
+  });
+
 
   onLoadCandidates(): void {
     this.api.get<Candidate[]>('api/Candidates').subscribe({
@@ -248,10 +273,9 @@ export class CandidatesComponent implements OnInit {
     });
   }
 
-  selectStage(value: CandidateStage): void {
-    this.activeStage.update(current => current === value ? null : value);
+  selectStage(value: string): void {
+    this.activeStage.set(value);
   }
-
   firstName = '';
   middleName = '';
   lastName = '';
