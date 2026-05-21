@@ -1,53 +1,51 @@
-<div class="candidates-page flex gap-4 p-4 h-full min-h-screen">
+<div class="flex gap-4 p-4 min-h-screen bg-gray-50 text-700">
 
-    <!-- ═══ LEFT SIDEBAR ═══════════════════════════════════════════════════════ -->
-    <div class="candidates-sidebar flex flex-column gap-3 flex-shrink-0">
+    <div class="surface-card border-1 border-gray-200 border-round-xl p-3 flex flex-column gap-3 flex-shrink-0 h-fit"
+        style="width: 240px;">
 
-        <p-button label="Add Candidate" icon="pi pi-plus" styleClass="add-btn w-full" (onClick)="openDialog()">
+        <p-button label="Add Candidate" icon="pi pi-plus" styleClass="w-full" (onClick)="openDialog()">
         </p-button>
 
-        <!-- Stage summary list -->
-        <div class="stages-list flex flex-column gap-1 mt-2">
-            <div *ngFor="let stage of stagesSummary()"
-                class="stage-item flex justify-content-between align-items-center p-3 border-round cursor-pointer"
-                [class.active-stage]="stage.active" (click)="selectStage(stage.id)">
+        <div class="flex flex-column gap-2 mt-2">
+            <div *ngFor="let stage of stagesSummary()" (click)="selectStage(stage.id)" [class.bg-blue-50]="stage.active"
+                [class.border-blue-500]="stage.active"
+                class="flex justify-content-between align-items-center p-2 border-round cursor-pointer transition-colors transition-duration-200 hover:bg-gray-100">
 
-                <span class="text-sm font-medium stage-label">{{ stage.label }}</span>
+                <div class="flex align-items-center gap-2">
+                    <span class="text-sm font-medium" [class.text-blue-700]="stage.active"
+                        [class.text-700]="!stage.active">
+                        {{ stage.label }}
+                    </span>
+                </div>
 
-                <span class="badge px-2 py-1 border-round text-xs font-bold">
-                    {{ stage.count }}
-                </span>
+                <p-badge [value]="stage.count.toString()" [severity]="stage.active ? 'info' : 'secondary'">
+                </p-badge>
             </div>
         </div>
     </div>
 
-    <!-- ═══ MAIN CONTENT ════════════════════════════════════════════════════════ -->
-    <div class="main-content flex-1 light-card border-round-xl p-4 flex flex-column gap-4">
+    <div class="flex-1 surface-card border-1 border-gray-200 border-round-xl p-4 flex flex-column gap-4">
 
-        <!-- Toolbar -->
-        <div class="toolbar flex justify-content-between align-items-center">
+        <div class="flex justify-content-between align-items-center">
             <span class="text-700 font-medium">({{ candidates().length }}) Candidates Found</span>
 
             <div class="flex gap-2 align-items-center">
-                <span class="p-input-icon-left custom-search">
-                    <i class="pi pi-search mr-2"></i>
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search text-500"></i>
                     <input type="text" pInputText placeholder="Search" [ngModel]="searchText()"
-                        (ngModelChange)="searchText.set($event)" class="p-inputtext-sm light-input" />
+                        (ngModelChange)="searchText.set($event)" class="p-inputtext-sm ml-2" />
                 </span>
 
                 <app-bulk-popover [selectedItems]="selectedCandidates" [actions]="bulkActions">
                 </app-bulk-popover>
 
-                <p-button label="CSV" icon="pi pi-file-excel"
-                    styleClass="p-button-rounded p-button-text p-button-sm csv-button" (onClick)="exportToCSV()">
-                </p-button>
-
+                <p-button label="CSV" icon="pi pi-file-excel" severity="secondary" [text]="true"
+                    [rounded]="true" (onClick)="exportToCSV()"></p-button>
             </div>
         </div>
 
-        <!-- Candidates table -->
         <p-table #dt [value]="candidates()" [(selection)]="selectedCandidates" [paginator]="true" [rows]="5"
-            responsiveLayout="scroll" styleClass="custom-table light-table">
+            responsiveLayout="scroll" styleClass="light-table">
 
             <ng-template pTemplate="header">
                 <tr>
@@ -57,7 +55,7 @@
                     <th>Contact Number</th>
                     <th>Date Applied</th>
                     <th>Stage</th>
-                    <th style="width: 4rem"></th>
+                    <th class="text-center">Convert</th>
                 </tr>
             </ng-template>
 
@@ -68,7 +66,7 @@
                     <td (click)="editCandidate(candidate)" style="cursor: pointer;">
                         <div class="flex align-items-center gap-3">
                             <p-avatar [label]="candidate.firstName.charAt(0)" shape="square" size="large"
-                                styleClass="avatar-blue">
+                                styleClass="bg-blue-50 text-blue-700 font-semibold border-round">
                             </p-avatar>
                             <div class="flex flex-column">
                                 <span class="font-semibold text-900">
@@ -88,36 +86,13 @@
                             optionValue="value" placeholder="Select a Stage" class="w-full md:w-56"
                             (onChange)="onStageChange(candidate.id, $event.value)" appendTo="body" />
                     </td>
-
-                    <td>
-                        <p-button icon="pi pi-ellipsis-v"
-                            styleClass="p-button-rounded p-button-text p-button-sm icon-btn"
-                            (onClick)="menu.toggle($event)">
+                    <td class="text-center">
+                        <p-button label="Convert" icon="pi pi-user-plus" size="small" [outlined]="true"
+                            severity="success" [disabled]="candidate.stage !== 'Hired'"
+                            (onClick)="openAddEmployeeDialog(candidate)">
                         </p-button>
-                        <p-popover #menu styleClass="candidate-action-popover">
-                            <div class="action-menu">
-                                <button *ngIf="candidate.isEmployee" class="action-item"
-                                    (click)="openAddEmployeeDialog(candidate); menu.hide()">
-                                    <i class="pi pi-plus action-icon action-icon--edit"></i>
-                                    <span>Convert to Employee</span>
-                                </button>
-                                <button class="action-item" (click)="editCandidate(candidate); menu.hide()">
-                                    <i class="pi pi-pencil action-icon action-icon--edit"></i>
-                                    <span>Edit</span>
-                                </button>
-                                <button class="action-item" (click)="sendEmail(candidate); menu.hide()">
-                                    <i class="pi pi-envelope action-icon action-icon--email"></i>
-                                    <span>Send an Email</span>
-                                </button>
-                                <div class="action-divider"></div>
-                                <button class="action-item action-item--danger"
-                                    (click)="deleteCandidate(candidate); menu.hide()">
-                                    <i class="pi pi-trash action-icon"></i>
-                                    <span>Delete</span>
-                                </button>
-                            </div>
-                        </p-popover>
                     </td>
+
                 </tr>
             </ng-template>
         </p-table>

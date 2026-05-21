@@ -36,23 +36,19 @@
             <div class="p-toolbar-group-start">
                 <span class="text-700 font-medium text-lg">({{ payslips().length }}) Payslips Found</span>
             </div>
-            <div class="p-toolbar-group-end flex gap-3 align-items-center">
+            <div class="p-toolbar-group-end flex gap-2 align-items-center">
                 <span class="p-input-icon-left">
                     <i class="pi pi-search"></i>
-                    <input type="text" pInputText placeholder="Search Employee"
-                        (input)="searchText.set($any($event.target).value)" class="p-inputtext-sm ml-2" />
+                    <input type="text" pInputText placeholder="Search" [ngModel]="searchText()"
+                        (ngModelChange)="searchText.set($event)" class="p-inputtext-sm ml-2" />
                 </span>
+                <app-bulk-popover [selectedItems]="selectedPayslips" [actions]="bulkActions"></app-bulk-popover>
                 <p-button label="CSV" icon="pi pi-file-excel" severity="secondary" [text]="true"
-                    [rounded]="true"></p-button>
+                    [rounded]="true" (onClick)="exportToCSV()"></p-button>
             </div>
         </p-toolbar>
 
         <div class="surface-card border-round shadow-1 p-3">
-            <div class="flex align-items-center mb-3" *ngIf="selectedPayslips.length > 0">
-                <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
-                    (onClick)="onDeleteSelected()"></p-button>
-                <span class="ml-3 font-medium text-700">{{ selectedPayslips.length }} items selected</span>
-            </div>
             <p-table #dt [value]="filteredPayslips()" [(selection)]="selectedPayslips" [paginator]="true" [rows]="10"
                 responsiveLayout="scroll">
 
@@ -65,7 +61,6 @@
                         <th class="text-right">Gross Pay</th>
                         <th class="text-right">Net Pay</th>
                         <th class="text-center">Status</th>
-                        <th style="width: 4rem"></th>
                     </tr>
                 </ng-template>
 
@@ -90,12 +85,6 @@
                         <td class="text-center">
                             <p-tag [value]="payslip.status"
                                 [severity]="payslip.status === 'Paid' ? 'success' : 'warn'"></p-tag>
-                        </td>
-
-                        <td>
-                            <p-menu #menu [model]="getMenuItems(payslip)" [popup]="true" appendTo="body"></p-menu>
-                            <p-button icon="pi pi-ellipsis-v" severity="secondary" [text]="true" [rounded]="true"
-                                (onClick)="menu.toggle($event)"></p-button>
                         </td>
                     </tr>
                 </ng-template>

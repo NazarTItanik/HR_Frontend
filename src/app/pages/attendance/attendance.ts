@@ -16,6 +16,9 @@ import { LoadingService } from '../../services/loading-service/loading-service';
 import { Employee } from '../../models/Employee';
 import { BulkPopoverComponent } from '../../common/bulk-toolbar-component/bulk-toolbar-component';
 import { BulkAction } from '../../models/BulkAction';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
+import { Popover } from 'primeng/popover';
 
 @Component({
   selector: 'app-attendances',
@@ -31,7 +34,9 @@ import { BulkAction } from '../../models/BulkAction';
     AvatarModule,
     FormsModule,
     TagModule,
-    BulkPopoverComponent
+    BulkPopoverComponent,
+    MenuModule,
+    Popover
   ],
   templateUrl: './attendance.html', // Проверь: файл должен называться 'attendance.html', а не 'attendances.html'
   styleUrl: './attendance.css'
@@ -301,13 +306,21 @@ export class AttendancesComponent implements OnInit {
   }
 
   onDelete(id: string): void {
-    this.api.delete(`api/Attendance/${id}`).subscribe({
+    let ids: string[] = [];
+    ids.push(id);
+    
+    this.loading.show();
+    this.api.post('api/Attendance/delete-multiple', ids).subscribe({
       next: () => {
-        console.log("Record deleted");
-        // Refresh the list after deletion
+        this.loading.hide();
+        this.selectedAttendances = [];
+        this.notification.success(`${ids.length} attendance(s) deleted`);
         this.loadAttendances();
       },
-      error: (err) => console.error("Delete failed", err)
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to delete selected attendances');
+      }
     });
   }
 
@@ -328,6 +341,16 @@ export class AttendancesComponent implements OnInit {
       }
     });
 
+  }
+
+  onRejectAttendance(id: string): void {
+    this.api.post(`api/Attendance/reject/${id}`).subscribe({
+      next: () => {
+        this.notification.success('Attendance rejected');
+        this.loadAttendances();
+      },
+      error: () => this.notification.error('Failed to reject attendance')
+    });
   }
 
   onBulkApprove(ids: string[]): void {

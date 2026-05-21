@@ -8,10 +8,9 @@ body {
     padding: 0;
 }
 
-body .p-menu .p-menuitem-link,
-body .p-menu .p-menuitem-link .p-menuitem-text,
-body .p-menu .p-menuitem-link .p-menuitem-icon {
-    /* "inherit" tells these elements to use the color 
-       passed by the 'style' attribute in your TypeScript */
-    color: inherit !important;
+
+:root {
+    --p-button-padding-y: 0.5rem !important;
+    --p-button-padding-x: 0.75rem !important;
+    --p-button-label-font-weight: 400 !important;
 }

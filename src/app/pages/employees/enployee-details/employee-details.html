@@ -45,8 +45,6 @@
                 <p-button icon="pi pi-pencil" [rounded]="true" [outlined]="true" severity="danger" pTooltip="Edit"
                     (onClick)="onOpenEditDialog()">
                 </p-button>
-                <p-button icon="pi pi-cog" [rounded]="true" [text]="true" severity="secondary" pTooltip="Settings">
-                </p-button>
             </div>
         </div>
     </div>
@@ -279,16 +277,92 @@
             </p-tabpanel>
 
             <p-tabpanel value="attendance">
-                <div class="empty-tab flex flex-column justify-content-center align-items-center p-5">
-                    <i class="pi pi-clock empty-icon text-4xl text-300 mb-3"></i>
-                    <span class="empty-text text-500">Attendance history will appear here</span>
+                <div class="p-3">
+                    <div class="grid mb-4">
+                        <div class="col-12 md:col-6 lg:col-3">
+                            <div class="surface-card border-round shadow-1 p-3">
+                                <span class="text-500 font-medium">On-Time Rate</span>
+                                <div class="text-2xl font-bold mt-2">96.5%</div>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-6 lg:col-3">
+                            <div class="surface-card border-round shadow-1 p-3">
+                                <span class="text-500 font-medium">Avg. Start Time</span>
+                                <div class="text-2xl font-bold mt-2">09:05 AM</div>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-6 lg:col-3">
+                            <div class="surface-card border-round shadow-1 p-3">
+                                <span class="text-500 font-medium">Monthly Work Hours</span>
+                                <div class="text-2xl font-bold mt-2">168h</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </p-tabpanel>
 
             <p-tabpanel value="payroll">
-                <div class="empty-tab flex flex-column justify-content-center align-items-center p-5">
-                    <i class="pi pi-wallet empty-icon text-4xl text-300 mb-3"></i>
-                    <span class="empty-text text-500">Payslip history will appear here</span>
+                <div class="p-3">
+                    <div class="grid mb-4">
+                        <div class="col-12 md:col-4">
+                            <div class="surface-card border-round shadow-1 p-3">
+                                <div class="flex justify-content-between mb-3">
+                                    <div>
+                                        <span class="block text-500 font-medium mb-3">Gross Pay</span>
+                                        <div class="text-900 font-bold text-2xl">${{ ytdStats().totalGross |
+                                            number:'1.2-2' }}</div>
+                                    </div>
+                                    <div class="flex align-items-center justify-content-center bg-blue-100 border-round"
+                                        style="width:2.5rem;height:2.5rem">
+                                        <i class="pi pi-dollar text-blue-500 text-xl"></i>
+                                    </div>
+                                </div>
+                                <span class="text-green-500 font-medium">Current Year </span>
+                                <span class="text-500">before taxes</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-4">
+                            <div class="surface-card border-round shadow-1 p-3">
+                                <div class="flex justify-content-between mb-3">
+                                    <div>
+                                        <span class="block text-500 font-medium mb-3">Net Pay</span>
+                                        <div class="text-900 font-bold text-2xl">${{ ytdStats().totalNet |
+                                            number:'1.2-2' }}</div>
+                                    </div>
+                                    <div class="flex align-items-center justify-content-center bg-green-100 border-round"
+                                        style="width:2.5rem;height:2.5rem">
+                                        <i class="pi pi-wallet text-green-500 text-xl"></i>
+                                    </div>
+                                </div>
+                                <span class="text-green-500 font-medium">Take-home pay </span>
+                                <span class="text-500">this year</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-4">
+                            <div class="surface-card border-round shadow-1 p-3">
+                                <div class="flex justify-content-between mb-3">
+                                    <div>
+                                        <span class="block text-500 font-medium mb-3">YTD Deductions</span>
+                                        <div class="text-900 font-bold text-2xl">${{ ytdStats().taxesAndDeductions |
+                                            number:'1.2-2' }}</div>
+                                    </div>
+                                    <div class="flex align-items-center justify-content-center bg-red-100 border-round"
+                                        style="width:2.5rem;height:2.5rem">
+                                        <i class="pi pi-percentage text-red-500 text-xl"></i>
+                                    </div>
+                                </div>
+                                <span class="text-500">Taxes & Benefits </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="surface-card border-round shadow-1 p-4 mb-4">
+                        <h3 class="text-lg font-bold text-900 mt-0 mb-4">Salary Trend (Last 6 Months)</h3>
+                        <p-chart type="bar" [data]="payrollChartData()" [options]="chartOptions"
+                            height="300px"></p-chart>
+                    </div>
                 </div>
             </p-tabpanel>
 

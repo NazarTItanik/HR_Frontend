@@ -77,15 +77,28 @@
                                 <td class="text-center">{{ attendance.totalHoursWorked | number:'1.1-2' }}</td>
 
                                 <td class="text-center">
-                                    <div class="flex gap-2">
-                                        <p-button icon="pi pi-pencil" severity="secondary"
-                                            (onClick)="onEdit(attendance)" pTooltip="Edit"></p-button>
-                                        <p-button icon="pi pi-times" severity="danger" pTooltip="Reject"></p-button>
-                                        <p-button icon="pi pi-check" severity="success"
-                                            (onClick)="onValidateAttendance(attendance.id)"
-                                            pTooltip="Validate"></p-button>
-
-                                    </div>
+                                    <p-button icon="pi pi-ellipsis-v" [text]="true" [rounded]="true"
+                                        severity="secondary" (onClick)="menu.toggle($event)">
+                                    </p-button>
+                                    <p-popover #menu>
+                                        <div class="flex flex-column" style="min-width: 160px">
+                                            <p-button label="Edit" icon="pi pi-pencil" [text]="true"
+                                                severity="secondary" styleClass="w-full justify-content-start" (onClick)="onEdit(attendance); menu.hide()">
+                                            </p-button>
+                                            <p-button label="Approve" icon="pi pi-check" [text]="true"
+                                                severity="secondary" styleClass="w-full justify-content-start"
+                                                (onClick)="onValidateAttendance(attendance.id); menu.hide()">
+                                            </p-button>
+                                            <p-button label="Reject" icon="pi pi-times" [text]="true" severity="secondary"
+                                                styleClass="w-full justify-content-start"
+                                                (onClick)="onRejectAttendance(attendance.id); menu.hide()">
+                                            </p-button>
+                                            <p-button label="Delete" icon="pi pi-trash" [text]="true" severity="danger"
+                                                styleClass="w-full justify-content-start"
+                                                (onClick)="onDelete(attendance.id); menu.hide()">
+                                            </p-button>
+                                        </div>
+                                    </p-popover>
                                 </td>
                             </tr>
                         </ng-template>

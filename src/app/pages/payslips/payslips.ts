@@ -19,6 +19,8 @@ import { Employee } from '../../models/Employee';
 import { Payslip } from '../../models/Payslip';
 import { LoadingService } from '../../services/loading-service/loading-service';
 import { Notification } from '../../services/notification/notification';
+import { BulkPopoverComponent } from '../../common/bulk-toolbar-component/bulk-toolbar-component';
+import { BulkAction } from '../../models/BulkAction';
 
 @Component({
   selector: 'app-payslips',
@@ -27,7 +29,8 @@ import { Notification } from '../../services/notification/notification';
     CommonModule, ReactiveFormsModule, FormsModule,
     ButtonModule, TableModule, InputTextModule, AvatarModule,
     TagModule, ToolbarModule, BadgeModule, MenuModule, // <-- Ensure these are here
-    DynamicFormDialogComponent
+    DynamicFormDialogComponent,
+    BulkPopoverComponent
   ],
   templateUrl: './payslips.html',
   styleUrl: './payslips.css',
@@ -38,6 +41,9 @@ export class PayslipsComponent implements OnInit {
   showGenerateDialog = false;
   generateForm!: FormGroup;
   generateFields: DialogFieldConfig[] = [];
+
+  bulkActions: BulkAction[] = [];
+
 
   // employees: Employee[] = [];
 
@@ -61,10 +67,10 @@ export class PayslipsComponent implements OnInit {
     const term = this.searchText();
 
     if (status === 'All Payslips') {
-      return allPayslips.filter(p => p.employeeName?.includes(term) || p.grossSalary?.toString().includes(term) || p.netSalary?.toString().includes(term));
+      return allPayslips.filter(p => p.employeeName?.includes(term) || p.grossSalary?.toString().includes(term) || p.netSalary?.toString().includes(term) || p.status?.toString().includes(term));
     }
 
-    return allPayslips.filter(p => p.status === status && (p.employeeName?.includes(term) || p.grossSalary?.toString().includes(term) || p.netSalary?.toString().includes(term)));
+    return allPayslips.filter(p => p.status === status && (p.employeeName?.includes(term) || p.grossSalary?.toString().includes(term) || p.netSalary?.toString().includes(term) || p.status?.toString().includes(term)));
   });
 
   // 3. Update your click handler
@@ -82,7 +88,21 @@ export class PayslipsComponent implements OnInit {
       endDate: [null, Validators.required],
       employeeIds: [null, Validators.required]
     });
-    // You don't need updateFields() here anymore either, loadEmployees handles it.
+
+    this.bulkActions = [
+      {
+        label: 'Mark as Paid',
+        icon: 'pi pi-check-circle',
+        severity: 'success',
+        execute: (ids) => this.onBulkMarkAsPaid(ids)
+      },
+      {
+        label: 'Delete',
+        icon: 'pi pi-trash',
+        severity: 'danger',
+        execute: (ids) => this.onBulkDelete(ids)
+      }
+    ];
   }
 
   updateFields(): void {
@@ -102,39 +122,7 @@ export class PayslipsComponent implements OnInit {
       }
     ];
   }
-
-  // Pure PrimeNG way to generate an action menu per row
-  getMenuItems(payslip: any): MenuItem[] {
-    const items: MenuItem[] = [
-      {
-        label: 'View Receipt',
-        icon: 'pi pi-eye',
-        command: () => this.openDetailDialog(payslip)
-      }
-    ];
-
-    if (payslip.status === 'Unpaid') {
-      items.push({
-        label: 'Mark as Paid',
-        icon: 'pi pi-check-circle',
-        styleClass: 'text-green-500',
-        command: () => console.log('Marking as paid:', payslip.id)
-      });
-    }
-
-    items.push(
-      { separator: true },
-      {
-        label: 'Delete',
-        icon: 'pi pi-trash',
-        styleClass: 'text-red-500', // PrimeFlex for danger action
-        command: () => console.log('Deleting:', payslip.id)
-      }
-    );
-
-    return items;
-  }
-
+  
   loadEmployees() {
     this.api.get<Employee[]>('api/Employees/GetEmployees').subscribe({
       next: (employees) => {
@@ -232,6 +220,79 @@ export class PayslipsComponent implements OnInit {
         console.error("Failed to delete selected payslips", err);
       }
     });
+  }
+
+  onBulkMarkAsPaid(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Payslips/mark-paid-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedPayslips = [];
+        this.notification.success(`${ids.length} payslip(s) marked as paid`);
+        this.onLoadPayslips();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to mark payslips as paid');
+      }
+    });
+  }
+
+  onBulkDelete(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Payslips/delete-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedPayslips = [];
+        this.notification.success(`${ids.length} payslip(s) deleted`);
+        this.onLoadPayslips();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to delete selected payslips');
+      }
+    });
+  }
+
+  exportToCSV(): void {
+    // We use filteredPayslips() so the export respects the user's current search/status filters
+    const data = this.filteredPayslips();
+
+    const headers = [
+      'Employee Name',
+      'Period Start',
+      'Period End',
+      'Generated On',
+      'Gross Pay',
+      'Net Pay',
+      'Status'
+    ];
+
+    const rows = data.map(p => {
+      const genDate = p.generationDate ? new Date(p.generationDate).toISOString().split('T')[0] : '';
+
+      return [
+        p.employeeName ?? 'Unknown',
+        p.periodStart ?? '',
+        p.periodEnd ?? '',
+        genDate,
+        p.grossSalary?.toString() ?? '0',
+        p.netSalary?.toString() ?? '0',
+        p.status ?? ''
+      ];
+    });
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(val => `"${val}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'payslips_export.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   }
 }
 

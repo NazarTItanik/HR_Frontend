@@ -23,8 +23,6 @@ export const routes: Routes = [
     {
         path: 'apply', component: RequestAccess, canActivate: [authGuard]
     },
-
-    // 2. Группа путей, использующих MainLayout
     {
         path: '',
         component: MainLayout,

@@ -14,11 +14,14 @@ import { AvatarModule } from 'primeng/avatar';
 import { TagModule } from 'primeng/tag';
 import { BulkPopoverComponent } from '../../common/bulk-toolbar-component/bulk-toolbar-component';
 import { BulkAction } from '../../models/BulkAction';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
+import { Popover } from 'primeng/popover';
 
 @Component({
   selector: 'app-leaves',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, TabsModule, DynamicFormDialogComponent, AvatarModule, TagModule, BulkPopoverComponent],
+  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, TabsModule, DynamicFormDialogComponent, AvatarModule, TagModule, BulkPopoverComponent, MenuModule, Popover],
   templateUrl: './leaves-component.html',
   styleUrl: "./leaves-component.css"
 })
@@ -69,6 +72,52 @@ export class LeavesComponent implements OnInit {
     this.loadLeaves();
     this.loadEmployees();
     this.initForm();
+  }
+
+  onDeleteSingle(id: string): void {
+    let ids: string[] = [];
+    ids.push(id);
+
+    this.loading.show();
+    this.api.post('api/Leaves/delete-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedLeaves = [];
+        this.notification.success(`${ids.length} leave(s) deleted`);
+        this.loadLeaves();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to delete selected leaves');
+      }
+    });
+  }
+
+  getLeaveMenuItems(leave: any): MenuItem[] {
+    return [
+      {
+        label: 'Edit',
+        icon: 'pi pi-pencil',
+        command: () => this.onEdit(leave)
+      },
+      {
+        label: 'Approve',
+        icon: 'pi pi-check',
+        command: () => this.onValidate(leave)
+      },
+      {
+        label: 'Reject',
+        icon: 'pi pi-times',
+        command: () => this.onReject(leave)
+      },
+      { separator: true },
+      {
+        label: 'Delete',
+        icon: 'pi pi-trash',
+        styleClass: 'text-red-500',
+        command: () => this.onDeleteSingle(leave)
+      }
+    ];
   }
 
   updateBulkActions(status: string): void {
@@ -241,7 +290,7 @@ export class LeavesComponent implements OnInit {
         })
       },
       error: (err) => {
-        console.error("The request failed with error:", err.message); 
+        console.error("The request failed with error:", err.message);
       }
     });
     this.api.get<Leave[]>('api/Leaves/status/Approved').subscribe({

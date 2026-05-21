@@ -1,111 +1,5 @@
-═══ PAGE BACKGROUND ═════════════════════════════════════════════════════ .candidates-page {
-    background: #f9fafb;
-    color: #374151;
-}
-
-/* ═══ SIDEBAR ═════════════════════════════════════════════════════════════ */
-.candidates-sidebar {
-    width: 240px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 1rem;
-    height: fit-content;
-}
-
-/* ═══ ADD BUTTON (primary) ═══════════════════════════════════════════════ */
-:host ::ng-deep .add-btn .p-button {
-    background: #2563eb !important;
-    border: none !important;
-    color: #fff !important;
-    transition: background 0.2s ease;
-}
-
-:host ::ng-deep .add-btn .p-button:hover {
-    background: #1d4ed8 !important;
-}
-
-/* ═══ STAGE LIST ITEMS ═══════════════════════════════════════════════════ */
-.stage-item {
-    color: #374151;
-    border: 1px solid transparent;
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.stage-item:hover {
-    background: #f3f4f6;
-}
-
-.stage-item.active-stage {
-    background: #e0f2fe;
-    border-color: #bae6fd;
-    color: #2563eb;
-}
-
-.stage-item .badge {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.stage-item.active-stage .badge {
-    background: #dbeafe;
-    color: #2563eb;
-}
-
-/* ═══ MAIN CARD ══════════════════════════════════════════════════════════ */
-.light-card {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-}
-
-/* ═══ INPUTS & SELECTS ═══════════════════════════════════════════════════ */
-.light-input,
-:host ::ng-deep .light-input.p-inputtext {
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
-    color: #111827 !important;
-    border-radius: 8px;
-    padding: 0.5rem 0.75rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.light-input:focus,
-:host ::ng-deep .light-input.p-inputtext:focus {
-    outline: none;
-    border-color: #2563eb !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
-}
-
-.light-select {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    color: #111827;
-    border-radius: 8px;
-    transition: border-color 0.2s ease;
-    cursor: pointer;
-}
-
-.light-select:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-
-.stage-select {
-    min-width: 140px;
-}
-
-/* ═══ SEARCH ═════════════════════════════════════════════════════════════ */
-.custom-search i {
-    color: #9ca3af;
-}
-
-.custom-search .light-input {
-    padding-left: 2rem;
-}
-
-/* ═══ TABLE ══════════════════════════════════════════════════════════════ */
-:host ::ng-deep .light-table .p-datatable-thead>tr>th {
+/* ═══ TABLE (Clean Light Theme Overrides) ════════════════════════════════ */
+:host ::ng-deep .light-table .p-datatable-thead > tr > th {
     background: #f9fafb !important;
     color: #6b7280 !important;
     border-bottom: 1px solid #e5e7eb !important;
@@ -115,14 +9,14 @@
     letter-spacing: 0.03em;
 }
 
-:host ::ng-deep .light-table .p-datatable-tbody>tr {
+:host ::ng-deep .light-table .p-datatable-tbody > tr {
     background: #ffffff !important;
     color: #374151 !important;
     border-bottom: 1px solid #f3f4f6 !important;
     transition: background 0.15s ease;
 }
 
-:host ::ng-deep .light-table .p-datatable-tbody>tr:hover {
+:host ::ng-deep .light-table .p-datatable-tbody > tr:hover {
     background: #f9fafb !important;
 }
 
@@ -131,143 +25,16 @@
     border: none !important;
 }
 
-/* ═══ AVATAR ═════════════════════════════════════════════════════════════ */
-:host ::ng-deep .avatar-blue {
-    background: #e0f2fe !important;
-    color: #2563eb !important;
-    font-weight: 600;
-}
-
-/* ═══ ICON BUTTON ════════════════════════════════════════════════════════ */
+/* Ensure action icons inherit the muted gray color until hovered */
 :host ::ng-deep .icon-btn .p-button {
     color: #6b7280 !important;
 }
-
 :host ::ng-deep .icon-btn .p-button:hover {
     background: #f3f4f6 !important;
     color: #374151 !important;
 }
 
-/* ═══ DIALOG ═════════════════════════════════════════════════════════════ */
-:host ::ng-deep .light-dialog .p-dialog-header {
-    background: #ffffff !important;
-    color: #111827 !important;
-    border-bottom: 1px solid #e5e7eb !important;
-}
-
-:host ::ng-deep .light-dialog .p-dialog-content {
-    background: #ffffff !important;
-    color: #374151 !important;
-}
-
-.dialog-footer {
-    border-top: 1px solid #e5e7eb;
-}
-
-.error-banner {
-    background: #b91c1c !important;
-    color: #ffffff !important;
-    border: 1px solid #fecaca;
-}
-
-/* ═══ CANCEL BUTTON ══════════════════════════════════════════════════════ */
-:host ::ng-deep .cancel-btn .p-button {
-    background: transparent !important;
-    border: 1px solid #e5e7eb !important;
-    color: #374151 !important;
-}
-
-:host ::ng-deep .cancel-btn .p-button:hover {
-    background: #f3f4f6 !important;
-}
-
-/* ═══ TEXT UTILITIES (override dark ones) ═══════════════════════════════ */
-.text-900 {
-    color: #111827;
-}
-
-.text-700 {
-    color: #374151;
-}
-
-.text-500 {
-    color: #6b7280;
-}
-
-/* POPOVER */
-
-.action-menu {
-    display: flex;
-    flex-direction: column;
-    padding: 0.35rem;
-    min-width: 170px;
-    gap: 0.1rem;
-}
-
-.action-item {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.55rem 0.75rem;
-    border: none;
-    background: transparent;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    color: #374151;
-    cursor: pointer;
-    transition: background 0.15s;
-    width: 100%;
-    text-align: left;
-}
-
-.action-item:hover {
-    background: #f3f4f6;
-}
-
-.action-item--danger {
-    color: #dc2626;
-}
-
-.action-item--danger:hover {
-    background: #fef2f2;
-}
-
-.action-icon {
-    font-size: 0.85rem;
-    color: #6b7280;
-}
-
-.action-icon--edit {
-    color: #2563eb;
-}
-
-.action-icon--email {
-    color: #7c3aed;
-}
-
-.action-item--danger .action-icon {
-    color: #dc2626;
-}
-
-.action-divider {
-    height: 1px;
-    background: #e5e7eb;
-    margin: 0.25rem 0;
-}
-
+/* Keeps your specific action menu positioned correctly */
 :host ::ng-deep .candidate-action-popover {
     transform: translateX(-130px) !important;
-}
-
-/* Переопределяем цвета PrimeNG для конкретно этой кнопки */
-::ng-deep .csv-button.p-button.p-button-text {
-    background-color: #eff4fa;
-    color: #1c5be3;
-    padding: 0.5rem 1rem;
-    /* Настройка отступов */
-}
-
-::ng-deep .csv-button.p-button.p-button-text:hover {
-    background-color: #e2ebf6;
-    color: #1c5be3;
 }

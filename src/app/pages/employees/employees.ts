@@ -81,6 +81,8 @@ export class EmployeesComponent implements OnInit {
   showBulkMailDialog = false;
   pendingMailIds: string[] = [];
 
+  searchText = signal<string>('');
+
   workTypeOptions = [
     { label: 'Full-Time', value: 'FullTime' },
     { label: 'Part-Time', value: 'PartTime' },
@@ -128,9 +130,9 @@ export class EmployeesComponent implements OnInit {
         workType: activeContract?.workType || 'None',
         status: emp.status,
         isOnline: emp.status === 'Active',
-        role: emp.role ?? null,           // ← add
-        hireDate: emp.hireDate ?? null,   // ← add
-        createdAt: emp.createdAt ?? null  // ← add
+        role: emp.role ?? null,
+        hireDate: emp.hireDate ?? null,
+        createdAt: emp.createdAt ?? null
       };
     });
   });
@@ -240,7 +242,6 @@ export class EmployeesComponent implements OnInit {
       error: (err) => {
         this.loading.hide();
         this.notification.error("Failed to delete selected employees.");
-        console.error("Delete error:", err);
       }
     });
   }
@@ -258,11 +259,9 @@ export class EmployeesComponent implements OnInit {
       return;
     }
 
-    console.log("------------");
 
     console.log(formValue);
     this.submitting = true;
-    // const formValue = this.employeeForm.value;
 
     this.loading.show();
     this.api.post<Employee>('api/Employees/CreateEmployee', formValue).subscribe({
@@ -296,10 +295,25 @@ export class EmployeesComponent implements OnInit {
   groupedEmployees = computed(() => {
     const list = this.employees();
     const group = this.groupBy();
-    if (!group) return list;
-    return [...list].sort((a, b) => {
-      const valA = a[group] ?? '';
-      const valB = b[group] ?? '';
+    const term = this.searchText().toLowerCase().trim();
+
+    let filteredList = list;
+    if (term) {
+      filteredList = list.filter(emp => {
+        const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
+        const email = (emp.email || '').toLowerCase();
+        const position = (emp.position || '').toLowerCase();
+
+        return fullName.includes(term) || email.includes(term) || position.includes(term);
+      });
+    }
+
+    if (!group) return filteredList;
+
+    return [...filteredList].sort((a, b) => {
+
+      const valA = (a[group] ?? '').toString();
+      const valB = (b[group] ?? '').toString();
       return valA.localeCompare(valB);
     });
   });
@@ -333,29 +347,72 @@ export class EmployeesComponent implements OnInit {
   }
 
   onBulkMailSelected(ids: string[]): void {
-  this.pendingMailIds = ids;
-  this.bulkMailForm.reset();
-  this.showBulkMailDialog = true;
-}
+    this.pendingMailIds = ids;
+    this.bulkMailForm.reset();
+    this.showBulkMailDialog = true;
+  }
 
-onBulkMailSaved(value: any): void {
-  this.notification.success(`Email sent to ${this.pendingMailIds.length} employee(s).`);
-  this.pendingMailIds = [];
-}
+  onBulkMailSaved(value: any): void {
+    this.notification.success(`Email sent to ${this.pendingMailIds.length} employee(s).`);
+    this.pendingMailIds = [];
+  }
 
-onBulkDeleteSelected(ids: string[]): void {
-  this.loading.show();
-  this.api.post('api/Employees/delete-multiple', ids).subscribe({
-    next: () => {
-      this.loading.hide();
-      this.selectedEmployees = [];
-      this.notification.success(`${ids.length} employee(s) deleted successfully`);
-      this.onLoadEmployees();
-    },
-    error: () => {
-      this.loading.hide();
-      this.notification.error('Failed to delete selected employees');
+  onBulkDeleteSelected(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Employees/delete-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedEmployees = [];
+        this.notification.success(`${ids.length} employee(s) deleted successfully`);
+        this.onLoadEmployees();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to delete selected employees');
+      }
+    });
+  }
+
+  exportToCSV(): void {
+    // Using groupedEmployees() ensures that if the user searches/filters the table, 
+    // the CSV only exports the visible results.
+    const data = this.groupedEmployees();
+
+    const headers = [
+      'Badge ID',
+      'First Name',
+      'Last Name',
+      'Email',
+      'Phone',
+      'Position',
+      'Work Type',
+      'Status',
+      'Hire Date'
+    ];
+
+    const rows = data.map(e => [
+      e.firstName ?? '',
+      e.lastName ?? '',
+      e.email ?? '',
+      e.position ?? '',
+      e.workType ?? '',
+      e.status ?? '',
+      e.hireDate ? new Date(e.hireDate).toISOString().split('T')[0] : ''
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(val => `"${val}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'employees.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+    editEmployee(candidate: Employee): void {
+      this.router.navigate(['/employee-detail'], { queryParams: { id: candidate.id } });
     }
-  });
-}
 }

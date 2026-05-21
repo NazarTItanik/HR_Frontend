@@ -15,6 +15,7 @@ import { Notification } from '../../../services/notification/notification';
 import { Employee, EmploymentContract } from '../../../models/Employee';
 import { DialogFieldConfig, DynamicFormDialogComponent } from '../../../common/dynamic-form-dialog/dynamic-form-dialog';
 import { Vacancy } from '../../../models/Vacancy';
+import { ChartModule } from 'primeng/chart';
 
 @Component({
   selector: 'app-employee-details',
@@ -27,7 +28,8 @@ import { Vacancy } from '../../../models/Vacancy';
     TabsModule,
     TooltipModule,
     TableModule,
-    DynamicFormDialogComponent
+    DynamicFormDialogComponent,
+    ChartModule,
   ],
   templateUrl: './employee-details.html',
   styleUrl: './employee-details.css'
@@ -79,6 +81,10 @@ export class EmployeeDetailsComponent implements OnInit {
     { label: 'Weekly Base', value: 'Weekly' }
   ];
 
+  employeePayslips = signal<any[]>([]);
+
+  // 1. Статистика YTD (Year-to-Date) - Считаем суммы за текущий год
+
   constructor(private fb: FormBuilder) {
 
   }
@@ -115,6 +121,7 @@ export class EmployeeDetailsComponent implements OnInit {
     this.api.get<Employee>(`api/Employees/GetEmployee/${id}`).subscribe({
       next: (data) => {
         this.employee.set(data);
+        this.loadEmployeePayslips(this.employee()!.id);
         console.log(data);
         this.loading.hide();
       },
@@ -134,6 +141,15 @@ export class EmployeeDetailsComponent implements OnInit {
         this.updateFields();
       },
       error: (err) => console.error('Failed to load vacancies', err)
+    });
+  }
+  // Inside your EmployeeDetailComponent
+  loadEmployeePayslips(employeeId: string) {
+    this.api.get<any[]>(`api/Payslips/employee/${employeeId}`).subscribe({
+      next: (data) => {
+        this.employeePayslips.set(data);
+      },
+      error: (err) => console.error('Failed to load payslips', err)
     });
   }
   updateFields() {
@@ -268,6 +284,71 @@ export class EmployeeDetailsComponent implements OnInit {
       }
     });
   }
+  ytdStats = computed(() => {
+    const currentYear = new Date().getFullYear();
+    const slips = this.employeePayslips().filter(p =>
+      new Date(p.generationDate).getFullYear() === currentYear && p.status === 'Paid'
+    );
+
+    console.log(slips)
+
+    const gross = slips.reduce((sum, p) => sum + p.grossSalary, 0);
+    const net = slips.reduce((sum, p) => sum + p.netSalary, 0);
+
+    return {
+      totalGross: gross,
+      totalNet: net,
+      taxesAndDeductions: gross - net
+    };
+  });
+
+  payrollChartData = computed(() => {
+    const currentYear = new Date().getFullYear();
+    const slips = this.employeePayslips().filter(p =>
+      new Date(p.generationDate).getFullYear() === currentYear && p.status === 'Paid'
+    );
+    const sorted = [...slips]
+      .sort((a, b) => new Date(a.generationDate).getTime() - new Date(b.generationDate).getTime())
+      .slice(-6);
+
+    return {
+      labels: sorted.map(p => {
+        const date = new Date(p.generationDate);
+        return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      }),
+      datasets: [
+        {
+          label: 'Gross Pay',
+          backgroundColor: '#93c5fd',
+          data: sorted.map(p => p.grossSalary)
+        },
+        {
+          label: 'Net Pay',
+          backgroundColor: '#4ade80',
+          data: sorted.map(p => p.netSalary)
+        }
+      ]
+    };
+  });
+
+  // 3. Опции для красивого отображения графика Chart.js
+  chartOptions = {
+    maintainAspectRatio: false,
+    aspectRatio: 0.8,
+    plugins: {
+      legend: { labels: { color: '#495057' } }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#6b7280', font: { weight: 500 } },
+        grid: { color: 'transparent', drawBorder: false }
+      },
+      y: {
+        ticks: { color: '#6b7280' },
+        grid: { color: '#e5e7eb', strokeDash: [5, 5], drawBorder: false }
+      }
+    }
+  };
 
 
 }

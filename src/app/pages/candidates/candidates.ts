@@ -11,6 +11,7 @@ import { PopoverModule } from 'primeng/popover';
 import { SelectModule } from 'primeng/select';
 import { ViewEncapsulation } from '@angular/core';
 import { Table } from 'primeng/table';
+import { BadgeModule } from 'primeng/badge';
 
 
 import { Candidate, CreateCandidateDto } from '../../models/Candidate';
@@ -22,6 +23,7 @@ import { Notification } from '../../services/notification/notification';
 import { DynamicFormDialogComponent, DialogFieldConfig } from '../../common/dynamic-form-dialog/dynamic-form-dialog';
 import { BulkAction } from '../../models/BulkAction';
 import { BulkPopoverComponent } from '../../common/bulk-toolbar-component/bulk-toolbar-component';
+import { Badge } from 'primeng/badge';
 
 // ─── Local Types ───────────────────────────────────────────────────────────────
 
@@ -52,7 +54,9 @@ export interface StageSummary {
     PopoverModule,
     SelectModule,
     DynamicFormDialogComponent,
-    BulkPopoverComponent
+    BulkPopoverComponent,
+    Badge
+  
   ],
   templateUrl: './candidates.html',
   styleUrl: './candidates.css'

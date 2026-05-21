@@ -226,7 +226,11 @@ export class CandidateDetailsComponent implements OnInit {
   onStageChange(): void {
     this.api.post(`api/Candidates/${this.candidateData!.id}/stage`, { stage: this.selectedStage })
       .subscribe({
-        next: () => this.notification.success('Stage updated'),
+        next: () => {
+          this.notification.success('Stage updated');
+          this.loadCandidate(this.candidateData!.id);
+
+        },
         error: () => this.notification.error('Failed to update stage')
       });
   }

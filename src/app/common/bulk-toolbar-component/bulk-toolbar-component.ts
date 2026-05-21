@@ -19,10 +19,10 @@ template: `
     <p-popover #op>
       <div class="flex flex-column gap-1" style="min-width: 40px">
         <p-button *ngFor="let action of actions" 
-          styleClass="w-full"
+          styleClass="w-full justify-content-start font-normal"
           [icon] = "action.icon"
           [label]="action.label"
-          [severity]="action.severity || 'secondary'"
+          [severity]="'secondary'"
           text
           (onClick)="action.execute(getIds()); op.hide()">
         </p-button>

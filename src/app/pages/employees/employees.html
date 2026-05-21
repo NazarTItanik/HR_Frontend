@@ -7,13 +7,19 @@
             <!-- <input pInputText type="text" placeholder="Search..." (input)="searchText.set($any($event.target).value)"
                 class="p-inputtext" /> -->
 
+            <span class="p-input-icon-left">
+                <i class="pi pi-search"></i>
+                <input type="text" pInputText placeholder="Search Employee" class="p-inputtext-sm ml-2" (input)="searchText.set($any($event.target).value)"  />
+            </span>
+
             <p-button icon="pi pi-list" label="Group By" severity="secondary" [outlined]="true"
                 (onClick)="groupByPanel.toggle($event)"></p-button>
+
 
             <app-bulk-popover [selectedItems]="selectedEmployees" [actions]="bulkActions"></app-bulk-popover>
 
 
-            <p-button icon="pi pi-plus" label="Create" severity="danger" (onClick)="onAddEmployee()"></p-button>
+            <p-button icon="pi pi-plus" label="Create" severity="success" (onClick)="onAddEmployee()"></p-button>
         </div>
     </div>
 
@@ -29,7 +35,7 @@
         </div>
     </p-popover>
 
-    <p-table [value]="groupedEmployees()" showGridlines [(selection)]="selectedEmployees" dataKey="id"
+    <p-table [value]="groupedEmployees()" [(selection)]="selectedEmployees" dataKey="id"
         [paginator]="true" [rows]="10" rowGroupMode="subheader" [groupRowsBy]="groupBy() ?? ''"
         styleClass="p-datatable-sm">
 
@@ -41,7 +47,6 @@
                 <th>Phone</th>
                 <th>Position</th>
                 <th>Work Type</th>
-                <th class="text-center">Actions</th>
             </tr>
         </ng-template>
 
@@ -57,7 +62,7 @@
             <tr [pSelectableRow]="emp">
                 <td><p-tableCheckbox [value]="emp"></p-tableCheckbox></td>
 
-                <td>
+                <td (click)="editEmployee(emp)" style="cursor: pointer;">
                     <div class="flex align-items-center gap-3">
                         <p-avatar [label]="emp.firstName.charAt(0) + emp.lastName.charAt(0)" shape="square" size="large"
                             styleClass="avatar-blue">
@@ -74,12 +79,6 @@
                 <td class="text-700">
                     <p-tag [value]="emp.workType" severity="info"></p-tag>
                 </td>
-
-                <td class="text-center">
-                    <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" [rounded]="true"
-                        (onClick)="menu.toggle($event)"></p-button>
-                    <p-menu #menu [popup]="true" [model]="actionItems" appendTo="body"></p-menu>
-                </td>
             </tr>
         </ng-template>
 
@@ -95,11 +94,6 @@
     [form]="employeeForm" [fields]="employeeFields" (saved)="onSubmitEmployee($event)" (cancelled)="closeDialog()">
 </app-dynamic-form-dialog>
 
-<app-dynamic-form-dialog
-    header="Send Bulk Email"
-    saveLabel="Send"
-    [(visible)]="showBulkMailDialog"
-    [form]="bulkMailForm"
-    [fields]="bulkMailFields"
-    (saved)="onBulkMailSaved($event)">
+<app-dynamic-form-dialog header="Send Bulk Email" saveLabel="Send" [(visible)]="showBulkMailDialog"
+    [form]="bulkMailForm" [fields]="bulkMailFields" (saved)="onBulkMailSaved($event)">
 </app-dynamic-form-dialog>
