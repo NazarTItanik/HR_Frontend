@@ -12,11 +12,13 @@ import { Employee } from '../../models/Employee';
 import { Leave } from '../../models/Leave';
 import { AvatarModule } from 'primeng/avatar';
 import { TagModule } from 'primeng/tag';
+import { BulkPopoverComponent } from '../../common/bulk-toolbar-component/bulk-toolbar-component';
+import { BulkAction } from '../../models/BulkAction';
 
 @Component({
   selector: 'app-leaves',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, TabsModule, DynamicFormDialogComponent, AvatarModule, TagModule],
+  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, TabsModule, DynamicFormDialogComponent, AvatarModule, TagModule, BulkPopoverComponent],
   templateUrl: './leaves-component.html',
   styleUrl: "./leaves-component.css"
 })
@@ -38,6 +40,8 @@ export class LeavesComponent implements OnInit {
   pendingLeaves = signal<any[]>([]);
   approvedLeaves = signal<any[]>([]);
   rejectedLeaves = signal<any[]>([]);
+
+  bulkActions: BulkAction[] = [];
 
   private filterLeaves(leaves: any[], term: string): Leave[] {
     const search = term.toLowerCase().trim();
@@ -61,9 +65,87 @@ export class LeavesComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.updateBulkActions('pending');
     this.loadLeaves();
     this.loadEmployees();
     this.initForm();
+  }
+
+  updateBulkActions(status: string): void {
+    const approve: BulkAction = {
+      label: 'Approve',
+      icon: 'pi pi-check',
+      severity: 'success',
+      execute: (ids) => this.onBulkApprove(ids)
+    };
+    const reject: BulkAction = {
+      label: 'Reject',
+      icon: 'pi pi-times',
+      severity: 'warn',
+      execute: (ids) => this.onBulkReject(ids)
+    };
+    const remove: BulkAction = {
+      label: 'Delete',
+      icon: 'pi pi-trash',
+      severity: 'danger',
+      execute: (ids) => this.onBulkDelete(ids)
+    };
+
+    if (status === 'pending') {
+      this.bulkActions = [approve, reject, remove];
+    } else if (status === 'approved') {
+      this.bulkActions = [reject, remove];
+    } else if (status === 'rejected') {
+      this.bulkActions = [approve, remove];
+    }
+  }
+
+  onBulkApprove(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Leaves/approve-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedLeaves = [];
+        this.notification.success(`${ids.length} leave(s) approved`);
+        this.loadLeaves();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to approve leaves');
+      }
+    });
+  }
+
+  onBulkReject(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Leaves/reject-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedLeaves = [];
+        this.notification.success(`${ids.length} leave(s) rejected`);
+        this.loadLeaves();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to reject leaves');
+      }
+    });
+  }
+
+  onBulkDelete(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Leaves/delete-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedLeaves = [];
+        this.notification.success(`${ids.length} leave(s) deleted`);
+        this.loadLeaves();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to delete selected leaves');
+      }
+    });
   }
 
   initForm() {
@@ -126,8 +208,6 @@ export class LeavesComponent implements OnInit {
       }
     });
   }
-
-  // 3. Validation logic
   onValidate(leave: any) {
     this.api.post(`api/Leaves/validate/${leave.id}`, {}).subscribe({
       next: () => {
@@ -138,11 +218,10 @@ export class LeavesComponent implements OnInit {
     });
   }
   onReject(leave: any) {
-    // You already have the confirmation dialog logic, just add the API call here
     this.api.post(`api/Leaves/reject/${leave.id}`, {}).subscribe({
       next: () => {
         this.notification.success("Leave rejected successfully");
-        this.loadLeaves(); // Refresh the list
+        this.loadLeaves();
       },
       error: () => this.notification.error("Failed to reject leave")
     });
@@ -162,7 +241,7 @@ export class LeavesComponent implements OnInit {
         })
       },
       error: (err) => {
-        console.error("The request failed with error:", err.message); // ALWAYS catch the error!
+        console.error("The request failed with error:", err.message); 
       }
     });
     this.api.get<Leave[]>('api/Leaves/status/Approved').subscribe({
@@ -238,6 +317,11 @@ export class LeavesComponent implements OnInit {
         this.loading.hide();
       }
     });
+  }
+  onTabChange(value: string): void {
+    this.activeTabValue = value;
+    this.selectedLeaves = [];
+    this.updateBulkActions(value);
   }
 }
 

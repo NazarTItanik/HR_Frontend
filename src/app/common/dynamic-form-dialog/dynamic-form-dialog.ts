@@ -17,7 +17,8 @@ import { MultiSelectModule } from 'primeng/multiselect';
 export interface DialogFieldConfig {
   key: string;
   label: string;
-  type: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'multiselect';
+  type: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'multiselect' | 'file';
+  accept?: string;
   required?: boolean;
   placeholder?: string;
   colSpan?: 3 | 4 | 6 | 8 | 12;
@@ -66,6 +67,9 @@ export class DynamicFormDialogComponent {
 
   submitError = '';
 
+
+  private fileMap = new Map<string, File>();
+
   isInvalid(key: string): boolean {
     const control = this.form.get(key);
     return !!(control?.invalid && (control.dirty || control.touched));
@@ -106,17 +110,32 @@ export class DynamicFormDialogComponent {
     this.close();
   }
 
-  onHide(): void {
+  private close(): void {
     this.submitError = '';
     this.form.reset();
+    this.fileMap.clear();   // ← add this
     this.visible = false;
     this.visibleChange.emit(false);
   }
 
-  private close(): void {
+  onHide(): void {
     this.submitError = '';
     this.form.reset();
+    this.fileMap.clear();   // ← add this
     this.visible = false;
     this.visibleChange.emit(false);
+  }
+
+  onFileChange(event: Event, key: string): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.fileMap.set(key, file);
+      this.form.get(key)?.setValue(file);
+    }
+  }
+
+  getFileName(key: string): string {
+    return this.fileMap.get(key)?.name ?? '';
   }
 }

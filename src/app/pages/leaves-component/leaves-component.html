@@ -5,11 +5,13 @@
             <input pInputText type="text" placeholder="Search by name, reason..."
                 (input)="searchText.set($any($event.target).value)" class="p-inputtext p-component" />
 
+            <app-bulk-popover [selectedItems]="selectedLeaves" [actions]="bulkActions"></app-bulk-popover>
+
             <p-button label="Request Leave" severity="success" (onClick)="onCreate()"></p-button>
         </div>
     </div>
 
-    <p-tabs [(value)]="activeTabValue">
+    <p-tabs [(value)]="activeTabValue" (valueChange)="onTabChange($event?.toString() ?? 'pending')">
         <p-tablist>
             <p-tab value="pending">Pending</p-tab>
             <p-tab value="approved">Approved</p-tab>
@@ -18,11 +20,6 @@
 
         <p-tabpanels>
             <p-tabpanel value="pending">
-                <div class="flex align-items-center mb-3" *ngIf="selectedLeaves.length > 0">
-                    <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
-                        (onClick)="onDeleteSelected()"></p-button>
-                    <span class="ml-3">{{ selectedLeaves.length }} items selected</span>
-                </div>
 
                 <p-table [value]="filteredPending()" [(selection)]="selectedLeaves" selectionMode="multiple"
                     dataKey="id">
@@ -67,11 +64,6 @@
             </p-tabpanel>
 
             <p-tabpanel value="approved">
-                <div class="flex align-items-center mb-3" *ngIf="selectedLeaves.length > 0">
-                    <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
-                        (onClick)="onDeleteSelected()"></p-button>
-                    <span class="ml-3">{{ selectedLeaves.length }} items selected</span>
-                </div>
                 <p-table [value]="filteredApproved()" [(selection)]="selectedLeaves" selectionMode="multiple"
                     dataKey="id">
                     dataKey="id">
@@ -106,11 +98,6 @@
             </p-tabpanel>
 
             <p-tabpanel value="rejected">
-                <div class="flex align-items-center mb-3" *ngIf="selectedLeaves.length > 0">
-                    <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
-                        (onClick)="onDeleteSelected()"></p-button>
-                    <span class="ml-3">{{ selectedLeaves.length }} items selected</span>
-                </div>
                 <p-table [value]="filteredRejected()" [(selection)]="selectedLeaves" selectionMode="multiple"
                     dataKey="id">
                     <ng-template pTemplate="header">

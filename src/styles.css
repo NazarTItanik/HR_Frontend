@@ -7,3 +7,11 @@ body {
     margin: 0;
     padding: 0;
 }
+
+body .p-menu .p-menuitem-link,
+body .p-menu .p-menuitem-link .p-menuitem-text,
+body .p-menu .p-menuitem-link .p-menuitem-icon {
+    /* "inherit" tells these elements to use the color 
+       passed by the 'style' attribute in your TypeScript */
+    color: inherit !important;
+}

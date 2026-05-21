@@ -10,11 +10,12 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
+import { TagModule } from 'primeng/tag';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, CardModule, TableModule, ButtonModule, AvatarModule, BadgeModule, RouterLink],
+  imports: [CommonModule, CardModule, TableModule, ButtonModule, AvatarModule, BadgeModule, RouterLink, TagModule],
   templateUrl: './home.html',
   styleUrls: ['./home.css']
 })
@@ -95,10 +96,16 @@ export class HomeComponent implements OnInit {
   loadEmployees() {
     this.api.get<Employee[]>('api/Employees/GetEmployees').subscribe({
       next: (data) => {
+        console.log(data);
         this.employees.set(data); // Updating this signal triggers the computed metrics!
       }
     });
   }
+
+  getActiveContract(employee: Employee) {
+    
+  return employee.contracts?.find(c => c.isActive) || employee.contracts?.[0];
+}
 }
 
 export interface DashboardMetrics {

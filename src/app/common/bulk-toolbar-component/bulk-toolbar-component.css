@@ -1,0 +1,16 @@
+/* 1. Break encapsulation to reach the menu appended to body */
+:host ::ng-deep body .p-menu .p-menuitem-link {
+    /* 2. Inherit the color we passed via TS style attribute */
+    color: inherit !important;
+}
+
+/* 3. Ensure icons also pick up that same color */
+:host ::ng-deep body .p-menu .p-menuitem-link .p-menuitem-icon {
+    color: inherit !important;
+}
+
+/* 4. Optional: Clean hover effect so it doesn't look weird when text is colored */
+:host ::ng-deep body .p-menu .p-menuitem:hover .p-menuitem-link {
+    background-color: var(--surface-hover);
+}
+

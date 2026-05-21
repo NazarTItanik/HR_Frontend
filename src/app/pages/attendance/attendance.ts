@@ -14,6 +14,8 @@ import { DynamicFormDialogComponent, DialogFieldConfig } from '../../common/dyna
 import { Notification } from '../../services/notification/notification';
 import { LoadingService } from '../../services/loading-service/loading-service';
 import { Employee } from '../../models/Employee';
+import { BulkPopoverComponent } from '../../common/bulk-toolbar-component/bulk-toolbar-component';
+import { BulkAction } from '../../models/BulkAction';
 
 @Component({
   selector: 'app-attendances',
@@ -28,7 +30,8 @@ import { Employee } from '../../models/Employee';
     DynamicFormDialogComponent,
     AvatarModule,
     FormsModule,
-    TagModule
+    TagModule,
+    BulkPopoverComponent
   ],
   templateUrl: './attendance.html', // Проверь: файл должен называться 'attendance.html', а не 'attendances.html'
   styleUrl: './attendance.css'
@@ -55,6 +58,8 @@ export class AttendancesComponent implements OnInit {
   isEditMode: boolean = false;
   editingAttendanceId = "";
 
+  bulkActions: BulkAction[] = [];
+
 
   filteredPending = computed<Attendance[]>(() => this.filterAttendance(this.pendingAttendances(), this.searchText()));
   filteredValidated = computed<Attendance[]>(() => this.filterAttendance(this.validatedAttendances(), this.searchText()));
@@ -78,9 +83,39 @@ export class AttendancesComponent implements OnInit {
   constructor(private api: ApiService, private fb: FormBuilder, private notification: Notification, private loading: LoadingService, private datePipe: DatePipe) { }
 
   ngOnInit() {
+    this.updateBulkActions("pending");
     this.loadAttendances();
     this.loadEmployees();
     this.initForm();
+  }
+
+  updateBulkActions(status: string): void {
+    const approve: BulkAction = {
+      label: 'Approve',
+      icon: 'pi pi-check',
+      severity: 'success',
+      execute: (ids: string[]) => this.onBulkApprove(ids)
+    };
+    const reject: BulkAction = {
+      label: 'Reject',
+      icon: 'pi pi-times',
+      severity: 'warn',
+      execute: (ids: string[]) => this.onBulkReject(ids)
+    };
+    const remove: BulkAction = {
+      label: 'Delete',
+      icon: 'pi pi-trash',
+      severity: 'danger',
+      execute: (ids: string[]) => this.onBulkDelete(ids)
+    };
+
+    if (status === 'pending') {
+      this.bulkActions = [approve, reject, remove];
+    } else if (status === 'validated') {
+      this.bulkActions = [reject, remove];
+    } else if (status === 'rejected') {
+      this.bulkActions = [approve, remove];
+    }
   }
 
   loadEmployees() {
@@ -180,14 +215,12 @@ export class AttendancesComponent implements OnInit {
 
   }
   onTabChange(event: any) {
-    // Оборачиваем всё в setTimeout, чтобы отложить обновление данных 
-    // до следующего тика браузера. Это убивает ошибку NG0100 на корню!
     setTimeout(() => {
       const status = event;
-      console.log('Switching to tab:', status);
+
+      this.updateBulkActions(status);
 
       this.activeTabValue = status;
-      // this.loadAttendances(status);
     });
   }
   onCreate() {
@@ -277,44 +310,72 @@ export class AttendancesComponent implements OnInit {
       error: (err) => console.error("Delete failed", err)
     });
   }
-  onDeleteSelected(): void {
-    if (this.selectedAttendances.length === 0) return;
 
-    // 1. Extract IDs from the selected attendance objects
-    const ids = this.selectedAttendances.map(a => a.id);
-
-    this.loading.show();
-
-    // 2. Call your backend (Make sure this endpoint exists in C#)
-    this.api.post('api/Attendance/delete-multiple', ids).subscribe({
-      next: () => {
-        this.notification.success(`Successfully deleted ${ids.length} records`);
-        this.selectedAttendances = []; // Clear selection after success
-        this.loadAttendances();
-        this.loading.hide();
-      },
-      error: (err) => {
-        this.loading.hide();
-        this.notification.error("Failed to delete selected records");
-        console.error(err);
-      }
-    });
-  }
-
-  onValidateAttendance(attendanceId: string): void {
-    this.api.post<string>(`api/Attendance/validate/${attendanceId}`).subscribe({
+  onValidateAttendance(ids: string): void {
+    let array: string[] = [];
+    array.push(ids);
+    this.api.post<string>(`api/Attendance/approve-multiple`, array).subscribe({
       next: (data) => {
         this.notification.success("Successfully validated");
         this.loadAttendances();
         console.log("Okay");
       },
       error: (err) => {
+        console.log(err.message)
         console.log("HUEVO")
         console.log(err.message);
         this.notification.error("Validation failed");
       }
     });
 
+  }
+
+  onBulkApprove(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Attendance/approve-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedAttendances = [];
+        this.notification.success(`${ids.length} attendance(s) approved`);
+        this.loadAttendances();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to approve attendances');
+      }
+    });
+  }
+
+  onBulkReject(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Attendance/reject-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedAttendances = [];
+        this.notification.success(`${ids.length} attendance(s) rejected`);
+        this.loadAttendances();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to reject attendances');
+      }
+    });
+  }
+
+  onBulkDelete(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Attendance/delete-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedAttendances = [];
+        this.notification.success(`${ids.length} attendance(s) deleted`);
+        this.loadAttendances();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to delete selected attendances');
+      }
+    });
   }
 }
 interface AttendancePayload {

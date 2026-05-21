@@ -10,7 +10,8 @@
             <p-button icon="pi pi-list" label="Group By" severity="secondary" [outlined]="true"
                 (onClick)="groupByPanel.toggle($event)"></p-button>
 
-            <p-button icon="pi pi-angle-down" label="Actions" severity="secondary" [outlined]="true"></p-button>
+            <app-bulk-popover [selectedItems]="selectedEmployees" [actions]="bulkActions"></app-bulk-popover>
+
 
             <p-button icon="pi pi-plus" label="Create" severity="danger" (onClick)="onAddEmployee()"></p-button>
         </div>
@@ -27,11 +28,6 @@
             </div>
         </div>
     </p-popover>
-    <div class="flex align-items-center mb-3" *ngIf="selectedEmployees.length > 0">
-        <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
-            (onClick)="onDeleteSelected()"></p-button>
-        <span class="ml-3">{{ selectedEmployees.length }} items selected</span>
-    </div>
 
     <p-table [value]="groupedEmployees()" showGridlines [(selection)]="selectedEmployees" dataKey="id"
         [paginator]="true" [rows]="10" rowGroupMode="subheader" [groupRowsBy]="groupBy() ?? ''"
@@ -97,4 +93,13 @@
 
 <app-dynamic-form-dialog header="Create Employee" saveLabel="Create" [(visible)]="createDialogVisible"
     [form]="employeeForm" [fields]="employeeFields" (saved)="onSubmitEmployee($event)" (cancelled)="closeDialog()">
+</app-dynamic-form-dialog>
+
+<app-dynamic-form-dialog
+    header="Send Bulk Email"
+    saveLabel="Send"
+    [(visible)]="showBulkMailDialog"
+    [form]="bulkMailForm"
+    [fields]="bulkMailFields"
+    (saved)="onBulkMailSaved($event)">
 </app-dynamic-form-dialog>

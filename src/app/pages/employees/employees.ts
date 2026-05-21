@@ -23,21 +23,8 @@ import { Router } from '@angular/router';
 import { LoadingService } from '../../services/loading-service/loading-service';
 import { Notification } from '../../services/notification/notification';
 import { DynamicFormDialogComponent, DialogFieldConfig } from '../../common/dynamic-form-dialog/dynamic-form-dialog';
-
-// export interface Employee {
-//   id: string;
-//   badgeId: string;
-//   firstName: string;
-//   lastName: string;
-//   email: string;
-//   phone: string;
-//   position: string;
-//   shift: string;
-//   workType: string;
-//   status: string;
-//   isOnline: boolean;
-// }
-
+import { BulkPopoverComponent } from '../../common/bulk-toolbar-component/bulk-toolbar-component';
+import { BulkAction } from '../../models/BulkAction';
 
 @Component({
   selector: 'app-employees',
@@ -58,7 +45,8 @@ import { DynamicFormDialogComponent, DialogFieldConfig } from '../../common/dyna
     MenuModule,
     DialogModule,
     PopoverModule,
-    DynamicFormDialogComponent
+    DynamicFormDialogComponent,
+    BulkPopoverComponent
   ]
 })
 export class EmployeesComponent implements OnInit {
@@ -86,7 +74,13 @@ export class EmployeesComponent implements OnInit {
 
   vacancyOptions: Vacancy[] = [];
 
-  // Опции для выпадающих списков в модальном окне
+  bulkActions: BulkAction[] = [];
+
+  bulkMailForm!: FormGroup;
+  bulkMailFields: DialogFieldConfig[] = [];
+  showBulkMailDialog = false;
+  pendingMailIds: string[] = [];
+
   workTypeOptions = [
     { label: 'Full-Time', value: 'FullTime' },
     { label: 'Part-Time', value: 'PartTime' },
@@ -149,6 +143,30 @@ export class EmployeesComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.bulkActions = [
+      {
+        label: 'Bulk Mail',
+        icon: 'pi pi-envelope',
+        severity: 'secondary',
+        execute: (ids) => this.onBulkMailSelected(ids)
+      },
+      {
+        label: 'Delete',
+        icon: 'pi pi-trash',
+        severity: 'danger',
+        execute: (ids) => this.onBulkDeleteSelected(ids)
+      }
+    ];
+
+    this.bulkMailForm = this.fb.group({
+      subject: ['', Validators.required],
+      body: ['', Validators.required],
+    });
+
+    this.bulkMailFields = [
+      { key: 'subject', label: 'Subject', type: 'text', required: true, colSpan: 12 },
+      { key: 'body', label: 'Body', type: 'textarea', required: true, colSpan: 12, rows: 6 },
+    ];
     this.initForm();
     this.onLoadEmployees();
   }
@@ -313,4 +331,31 @@ export class EmployeesComponent implements OnInit {
       { key: 'role', label: 'Role', type: 'select', options: this.Roles, colSpan: 6 },
     ];
   }
+
+  onBulkMailSelected(ids: string[]): void {
+  this.pendingMailIds = ids;
+  this.bulkMailForm.reset();
+  this.showBulkMailDialog = true;
+}
+
+onBulkMailSaved(value: any): void {
+  this.notification.success(`Email sent to ${this.pendingMailIds.length} employee(s).`);
+  this.pendingMailIds = [];
+}
+
+onBulkDeleteSelected(ids: string[]): void {
+  this.loading.show();
+  this.api.post('api/Employees/delete-multiple', ids).subscribe({
+    next: () => {
+      this.loading.hide();
+      this.selectedEmployees = [];
+      this.notification.success(`${ids.length} employee(s) deleted successfully`);
+      this.onLoadEmployees();
+    },
+    error: () => {
+      this.loading.hide();
+      this.notification.error('Failed to delete selected employees');
+    }
+  });
+}
 }

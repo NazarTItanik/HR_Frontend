@@ -16,11 +16,12 @@ import { Table } from 'primeng/table';
 import { Candidate, CreateCandidateDto } from '../../models/Candidate';
 import { ApiService } from '../../services/api-service/api-service';
 import { LoadingService } from '../../services/loading-service/loading-service';
-import { delay } from 'rxjs';
 import { CandidateStage } from '../../models/enums/candidateStage';
 import { Router } from '@angular/router';
 import { Notification } from '../../services/notification/notification';
 import { DynamicFormDialogComponent, DialogFieldConfig } from '../../common/dynamic-form-dialog/dynamic-form-dialog';
+import { BulkAction } from '../../models/BulkAction';
+import { BulkPopoverComponent } from '../../common/bulk-toolbar-component/bulk-toolbar-component';
 
 // ─── Local Types ───────────────────────────────────────────────────────────────
 
@@ -50,7 +51,8 @@ export interface StageSummary {
     InputTextModule,
     PopoverModule,
     SelectModule,
-    DynamicFormDialogComponent
+    DynamicFormDialogComponent,
+    BulkPopoverComponent
   ],
   templateUrl: './candidates.html',
   styleUrl: './candidates.css'
@@ -60,21 +62,17 @@ export class CandidatesComponent implements OnInit {
 
   employeeForm!: FormGroup;
 
+  bulkActions: BulkAction[] = [];
+
+  selectedCandidates: Candidate[] = [];
+
   @ViewChild('dt', { static: false }) dt!: Table;
-
-
-  // ── Dialog ─────────────────────────────────────────────────────────────────
-  visible = false;
 
   // ── Vacancy filter ─────────────────────────────────────────────────────────
   searchQuery = 'all';
 
   vacancies: { id: number, title: string }[] = [];
   selectedVacancy: number | undefined;
-
-  // ── Submission state ───────────────────────────────────────────────────────
-  isSubmitting = false;
-  submitError: string | null = null;
 
   // Default to 'All' instead of null
   activeStage = signal<string>('All');
@@ -91,23 +89,16 @@ export class CandidatesComponent implements OnInit {
 
   selectedCandidate: Candidate | null = null;
 
-  onResumeSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.resumeFile = input.files[0];
-      console.log('Selected file:', this.resumeFile);
-    }
-  }
-  onStageChange(candidateId: string, newStage: any): void {
-    this.api.post(`api/Candidates/${candidateId}/stage`, { stage: newStage })
-      .subscribe({
-        next: () => {
-          this.notification.success('Stage updated');
-          this.onLoadCandidates();
-        },
-        error: () => this.notification.error('Failed to update stage')
-      });
-  }
+
+  candidateFields: DialogFieldConfig[] = [];
+  candidateForm!: FormGroup;
+  showAddCandidateDialog = false;
+
+  bulkMailForm!: FormGroup;
+  bulkMailFields: DialogFieldConfig[] = [];
+  showBulkMailDialog = false;
+  pendingMailIds: string[] = [];
+
 
   openAddEmployeeDialog(candidate: Candidate): void {
     this.selectedCandidate = candidate;
@@ -127,6 +118,20 @@ export class CandidatesComponent implements OnInit {
     .map(s => ({ label: s as string, value: s }));
 
   ngOnInit(): void {
+    this.bulkActions = [
+      {
+        label: 'Bulk mail',
+        icon: 'pi pi-envelope',
+        severity: 'secondary',
+        execute: (ids) => this.onBulkMailSelected(ids)
+      },
+      {
+        label: 'Delete',
+        icon: 'pi pi-trash',
+        severity: 'danger', // Сразу станет красным
+        execute: (ids) => this.onDeleteSelected(ids)
+      }
+    ];
     this.employeeForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(100)]],
       lastName: ['', [Validators.required, Validators.maxLength(100)]],
@@ -140,19 +145,58 @@ export class CandidatesComponent implements OnInit {
     this.onLoadCandidates();
     this.onLoadVacancies();
 
-    // this.cities = [
-    //   { name: 'Vacancy 1', id: '1' },
-    //   { name: 'Vacancy 2', id: '2' },
-    //   { name: 'Vacancy 3', id: '3' },
-    //   { name: 'Vacancy 4', id: '4' },
-    //   { name: 'Vacancy 5', id: '5' }
-    // ];
+    this.candidateForm = this.fb.group({
+      firstName: ['', [Validators.required, Validators.maxLength(100)]],
+      middleName: [''],
+      lastName: ['', [Validators.required, Validators.maxLength(100)]],
+      vacancyId: [null],
+      dateOfApplication: [null],
+      email: ['', [Validators.required, Validators.email]],
+      contactNumber: [''],
+      facebook: [''],
+      twitter: [''],
+      linkedIn: [''],
+      keywords: [''],
+      resumeFile: [null],
+      notes: [''],
+    });
+
+    this.bulkMailForm = this.fb.group({
+      subject: ['', Validators.required],
+      body: ['', Validators.required],
+    });
+
+    this.bulkMailFields = [
+      { key: 'subject', label: 'Subject', type: 'text', required: true, colSpan: 12 },
+      { key: 'body', label: 'Body', type: 'textarea', required: true, colSpan: 12, rows: 6 },
+    ];
+  }
+  onDeleteSelected(ids: string[]): void {
+    this.loading.show();
+    this.api.post('api/Candidates/delete-multiple', ids).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.selectedCandidates = [];
+        this.notification.success(`${ids.length} candidate(s) deleted successfully`);
+        this.onLoadCandidates();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to delete selected candidates');
+      }
+    });
+  }
+  onBulkMailSelected(ids: string[]): void {
+    this.pendingMailIds = ids;
+    this.bulkMailForm.reset();
+    this.showBulkMailDialog = true;
   }
 
-  // ── Stage options ──────────────────────────────────────────────────────────
+  onBulkMailSaved(value: any): void {
+    this.notification.success(`Email sent to ${this.pendingMailIds.length} candidate(s).`);
+    this.pendingMailIds = [];
+  }
 
-  // ── Candidates (writable signal) ───────────────────────────────────────────
-  // Используем Candidate из модели — id: string, stage: string
   private _candidates = signal<Candidate[]>([]);
 
   candidates = computed<Candidate[]>(() => {
@@ -170,7 +214,6 @@ export class CandidatesComponent implements OnInit {
       });
   });
 
-  // ── Sidebar stage summary (computed) ──────────────────────────────────────
   stagesSummary = computed<StageSummary[]>(() => {
     const allCandidates = this._candidates();
     const currentStage = this.activeStage();
@@ -185,7 +228,6 @@ export class CandidatesComponent implements OnInit {
         active: currentStage === stage,
       }));
 
-    // 2. Prepend the 'All Candidates' option to the array
     return [
       {
         id: 'All',
@@ -208,6 +250,18 @@ export class CandidatesComponent implements OnInit {
       }
     });
   }
+
+  onStageChange(candidateId: string, newStage: any): void {
+    this.api.post(`api/Candidates/${candidateId}/stage`, { stage: newStage })
+      .subscribe({
+        next: () => {
+          this.notification.success('Stage updated');
+          this.onLoadCandidates();
+        },
+        error: () => this.notification.error('Failed to update stage')
+      });
+  }
+
   onLoadVacancies(): void {
     this.api.get<{ id: number, title: string }[]>('api/GetVacancies').subscribe({
       next: (data) => {
@@ -241,6 +295,22 @@ export class CandidatesComponent implements OnInit {
             key: 'workType', label: 'Work Type', type: 'select', required: true, colSpan: 6,
             options: this.workTypes
           },
+        ];
+
+        this.candidateFields = [
+          { key: 'firstName', label: 'First Name', type: 'text', required: true, colSpan: 4, errorMessages: { maxlength: 'Max 100 characters.' } },
+          { key: 'middleName', label: 'Middle Name', type: 'text', required: false, colSpan: 4 },
+          { key: 'lastName', label: 'Last Name', type: 'text', required: true, colSpan: 4, errorMessages: { maxlength: 'Max 100 characters.' } },
+          { key: 'vacancyId', label: 'Vacancy', type: 'select', required: false, colSpan: 4, options: this.vacancies, optionLabel: 'title', optionValue: 'id' },
+          { key: 'dateOfApplication', label: 'Date of Application', type: 'date', required: false, colSpan: 4 },
+          { key: 'email', label: 'Email', type: 'email', required: true, colSpan: 4 },
+          { key: 'contactNumber', label: 'Contact Number', type: 'text', required: false, colSpan: 4 },
+          { key: 'facebook', label: 'Facebook', type: 'text', required: false, colSpan: 4 },
+          { key: 'twitter', label: 'X (Twitter)', type: 'text', required: false, colSpan: 4 },
+          { key: 'linkedIn', label: 'LinkedIn', type: 'text', required: false, colSpan: 4 },
+          { key: 'keywords', label: 'Keywords', type: 'text', required: false, colSpan: 4, placeholder: 'Enter comma separated words' },
+          { key: 'resumeFile', label: 'Resume', type: 'file', required: false, colSpan: 4, accept: '.pdf' },
+          { key: 'notes', label: 'Notes', type: 'textarea', required: false, colSpan: 12, placeholder: 'Enter any other notes about the candidate' },
         ];
       },
       error: (err) => {
@@ -276,104 +346,46 @@ export class CandidatesComponent implements OnInit {
   selectStage(value: string): void {
     this.activeStage.set(value);
   }
-  firstName = '';
-  middleName = '';
-  lastName = '';
-  vacancyId = null;
-  dateOfApplication = '';
-  email = '';
-  contactNumber = '';
-  facebook = '';
-  twitter = '';
-  linkedIn = '';
-  keywords = '';
-  candidateSource = '';
-  notes = '';
-  resumeFile: File | null = null;  // соответствует resumeFile?: File в DTO
 
   constructor(private api: ApiService, private loading: LoadingService, private router: Router, private notification: Notification, private fb: FormBuilder,) { }
 
-  // ── File select ────────────────────────────────────────────────────────────
-  onFileSelect(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.resumeFile = input.files?.[0] ?? null;
-  }
-
-  // ── Open / close dialog ────────────────────────────────────────────────────
   openDialog(): void {
-    this.resetForm();
-    this.visible = true;
+    this.showAddCandidateDialog = true;
   }
 
-  closeDialog(): void {
-    this.visible = false;
-    this.submitError = null;
-  }
-
-  // ── Submit ─────────────────────────────────────────────────────────────────
-  onSubmit(): void {
-    this.submitError = null;
+  onCandidateSaved(value: any): void {
     this.loading.show();
 
-    if (!this.firstName.trim() || !this.lastName.trim() || !this.email.trim()) {
-      this.submitError = 'First Name, Last Name and Email are required.';
-      this.loading.hide();
-      return;
-    }
-
     const formData = new FormData();
-    formData.append('firstName', this.firstName.trim());
-    formData.append('lastName', this.lastName.trim());
-    formData.append('email', this.email.trim());
+    formData.append('firstName', value.firstName.trim());
+    formData.append('lastName', value.lastName.trim());
+    formData.append('email', value.email.trim());
 
-    if (this.middleName) formData.append('middleName', this.middleName.trim());
-    if (this.selectedVacancy) formData.append('vacancyId', this.selectedVacancy.toString());
-    if (this.dateOfApplication) formData.append('dateOfApplication', this.dateOfApplication);
-    if (this.contactNumber) formData.append('contactNumber', this.contactNumber.trim());
-    if (this.facebook) formData.append('facebook', this.facebook.trim());
-    if (this.twitter) formData.append('twitter', this.twitter.trim());
-    if (this.linkedIn) formData.append('linkedIn', this.linkedIn.trim());
-    if (this.keywords) formData.append('keywords', this.keywords.trim());
-    if (this.notes) formData.append('notes', this.notes.trim());
-    if (this.resumeFile) formData.append('resumeFile', this.resumeFile);
+    if (value.middleName) formData.append('middleName', value.middleName.trim());
+    if (value.vacancyId) formData.append('vacancyId', value.vacancyId.toString());
+    if (value.dateOfApplication) formData.append('dateOfApplication', (value.dateOfApplication as Date).toISOString().split('T')[0]);
+    if (value.contactNumber) formData.append('contactNumber', value.contactNumber.trim());
+    if (value.facebook) formData.append('facebook', value.facebook.trim());
+    if (value.twitter) formData.append('twitter', value.twitter.trim());
+    if (value.linkedIn) formData.append('linkedIn', value.linkedIn.trim());
+    if (value.keywords) formData.append('keywords', value.keywords.trim());
+    if (value.notes) formData.append('notes', value.notes.trim());
+    if (value.resumeFile instanceof File) formData.append('resumeFile', value.resumeFile);
 
     formData.append('stage', CandidateStage.New.toString());
 
-    this.api
-      .post<Candidate>('api/Candidates', formData)
-      .subscribe({
-        next: (data) => {
-          this.onLoadCandidates();
-          this.loading.hide();
-          setTimeout(() => this.closeDialog(), 0);
-        },
-        error: (err) => {
-          console.error('Validation errors:', err.error.errors); // ← add t
-          console.error(err);
-          this.loading.hide();
-        }
-      });
+    this.api.post<Candidate>('api/Candidates', formData).subscribe({
+      next: () => {
+        this.loading.hide();
+        this.notification.success('Candidate added successfully.');
+        this.onLoadCandidates();
+      },
+      error: () => {
+        this.loading.hide();
+        this.notification.error('Failed to add candidate.');
+      }
+    });
   }
-
-  // ── Reset ──────────────────────────────────────────────────────────────────
-  private resetForm(): void {
-    this.firstName = '';
-    this.middleName = '';
-    this.lastName = '';
-    this.selectedVacancy = undefined;
-    this.dateOfApplication = '';
-    this.email = '';
-    this.contactNumber = '';
-    this.facebook = '';
-    this.twitter = '';
-    this.linkedIn = '';
-    this.keywords = '';
-    this.candidateSource = '';
-    this.notes = '';
-    this.resumeFile = null;
-    this.submitError = null;
-  }
-
   editCandidate(candidate: Candidate): void {
     this.router.navigate(['/candidate-detail'], { queryParams: { id: candidate.id } });
   }

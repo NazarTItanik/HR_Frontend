@@ -4,12 +4,6 @@
         class="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center mb-4 gap-3">
         <div class="flex gap-3">
             <h1 class="text-3xl font-bold m-0 text-900">Attendances</h1>
-            <!-- <div class="flex justify-content-between align-items-center mb-3">
-
-                <p-button *ngIf="selectedAttendances.length> 0" severity="danger" (onClick)="onDeleteSelected()">Delete
-                    All
-                    Selected</p-button>
-            </div> -->
         </div>
 
         <div class="flex flex-wrap align-items-center gap-2">
@@ -19,7 +13,8 @@
                     [ngModel]="searchText()" (ngModelChange)="searchText.set($event)" />
             </span>
 
-            <p-button icon="pi pi-filter" label="Filter" severity="secondary" [outlined]="true"></p-button>
+            <app-bulk-popover [selectedItems]="selectedAttendances" [actions]="bulkActions">
+            </app-bulk-popover>
 
             <p-button icon="pi pi-plus" label="Create" severity="success" (onClick)="onCreate()"></p-button>
         </div>
@@ -41,11 +36,6 @@
 
         <p-tabpanels>
             <p-tabpanel value="pending">
-                <div class="flex align-items-center mb-3" *ngIf="selectedAttendances.length > 0">
-                    <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
-                        (onClick)="onDeleteSelected()"></p-button>
-                    <span class="ml-3">{{ selectedAttendances.length }} items selected</span>
-                </div>
 
                 <div class="pt-3">
                     <p-table [value]="filteredPending()" [(selection)]="selectedAttendances" dataKey="id"
@@ -111,11 +101,6 @@
             </p-tabpanel>
 
             <p-tabpanel value="validated">
-                <div class="flex align-items-center mb-3" *ngIf="selectedAttendances.length > 0">
-                    <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
-                        (onClick)="onDeleteSelected()"></p-button>
-                    <span class="ml-3">{{ selectedAttendances.length }} items selected</span>
-                </div>
                 <div class="pt-3">
                     <p-table [value]="filteredValidated()" [(selection)]="selectedAttendances" dataKey="id"
                         [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="custom-table light-table">
@@ -174,11 +159,6 @@
 </div>
 </p-tabpanel>
 <p-tabpanel value="rejected">
-    <div class="flex align-items-center mb-3" *ngIf="selectedAttendances.length > 0">
-        <p-button label="Delete Selected" icon="pi pi-trash" severity="danger"
-            (onClick)="onDeleteSelected()"></p-button>
-        <span class="ml-3">{{ selectedAttendances.length }} items selected</span>
-    </div>
     <div class="pt-3">
         <p-table [value]="filteredRejected()" [(selection)]="selectedAttendances" dataKey="id" [paginator]="true"
             [rows]="10" styleClass="custom-table light-table">

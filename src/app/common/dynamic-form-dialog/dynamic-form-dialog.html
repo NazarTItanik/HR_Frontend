@@ -61,6 +61,18 @@
                         [class.ng-invalid]="isInvalid(field.key)" [class.ng-dirty]="isInvalid(field.key)"
                         appendTo="body" display="chip" />
                 </ng-container>
+                <!-- FILE -->
+                <ng-container *ngIf="field.type === 'file'">
+                    <input #fileInput type="file" [accept]="field.accept ?? '*'"
+                        (change)="onFileChange($event, field.key)" class="hidden" />
+                    <p-button icon="pi pi-upload" [label]="getFileName(field.key) || 'Upload File'"
+                        styleClass="p-button-outlined upload-btn w-full" [style]="{ width: '100%' }"
+                        (onClick)="fileInput.click()">
+                    </p-button>
+                    <span *ngIf="getFileName(field.key)" class="text-xs text-500 mt-1">
+                        <i class="pi pi-file mr-1"></i>{{ getFileName(field.key) }}
+                    </span>
+                </ng-container>
 
                 <!-- ERRORS -->
                 <small class="p-error text-red-500 text-xs" *ngIf="isInvalid(field.key)">

@@ -56,7 +56,7 @@
                     <ng-template pTemplate="header">
                         <tr>
                             <th>Employee</th>
-                            <th>Department</th>
+                            <th>Position</th>
                             <th class="text-right">Hire Date</th>
                         </tr>
                     </ng-template>
@@ -70,7 +70,8 @@
                                 </div>
                             </td>
                             <td>
-                                <!-- <p-tag [value]="emp.department" severity="info"></p-tag> -->
+                                <p-tag [value]="getActiveContract(emp)?.vacancy?.title || 'No Contract'" 
+                   [severity]="getActiveContract(emp) ? 'info' : 'secondary'"></p-tag>
                             </td>
                             <td class="text-700 text-sm text-right">{{ emp.hireDate | date:'dd/MM/yyyy' }}</td>
                         </tr>
